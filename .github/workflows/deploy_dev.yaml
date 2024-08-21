@@ -16,11 +16,10 @@ jobs:
         - name: Checkout code
           uses: actions/checkout@v3
 
-        - uses: Roblox/setup-foreman@v1
-          name: Install Foreman
+        - uses: ok-nick/setup-aftman@v0.3.0
+          name: Install aftman
           with:
-                version: "^1.0.0"
-                token: ${{ secrets.GITHUB_TOKEN }}
+              token: ${{ SECRETS.GITHUB_TOKEN }}
         
         - name: Build Place
           run: rojo build -o build.rbxlx
