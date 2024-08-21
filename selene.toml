@@ -1,0 +1,10 @@
+std = "roblox"
+
+exclude = [
+    "*.spec.luau",
+    "*.d.lua",
+    "src/shared/Packages/*",
+]
+
+[rules]
+parenthese_conditions = "allow"
