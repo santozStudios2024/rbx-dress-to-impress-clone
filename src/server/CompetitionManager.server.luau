@@ -46,7 +46,7 @@ function startRound()
 		:andThenCall(Promise.delay, COMPETITION_DATA.ROUND_TIME)
 		:andThen(function()
 			-- if #roundSubmissions <= 0 then
-            --     print("NO SUBMISSIONS!!!")
+			--     print("NO SUBMISSIONS!!!")
 
 			-- 	return Promise.reject(intermission)
 			-- end
@@ -110,12 +110,13 @@ end
 
 intermission = function()
 	return Promise.race({
-		Promise.resolve()
+		Promise
+			.resolve()
 			:andThen(function()
 				print("Intermission started")
 				currentThemeData = {
-                    theme = "Wild West"
-                }
+					theme = "Wild West",
+				}
 
 				GameStateManager.setState({
 					state = constants.GAME_STATES.INTERMISSION,
@@ -125,14 +126,16 @@ intermission = function()
 					},
 				})
 			end)
-            :andThenCall(Promise.delay, COMPETITION_DATA.INTERMISSION_TIME)
+			:andThenCall(Promise.delay, COMPETITION_DATA.INTERMISSION_TIME)
 			-- :andThen(function()
 			-- 	task.wait(intermissionTime)
 			-- 	return true
 			-- end)
-			:andThen(function()
-				return startRound
-			end),
+			:andThen(
+				function()
+					return startRound
+				end
+			),
 	}):catch(function(state)
 		warn(tostring(state))
 		return state
@@ -142,7 +145,7 @@ end
 Players.PlayerRemoving:Connect(onPlayerRemoved)
 
 currentThemeData = {
-    theme = "Wild West"
+	theme = "Wild West",
 }
 
 local nextState = startRound
