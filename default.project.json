@@ -9,6 +9,9 @@
       },
       "Packages": {
         "$path": "Packages"
+      },
+      "RemoteEvents": {
+        "$path": "RemoteEvents"
       }
     },
 
