@@ -8,6 +8,16 @@ version = "3.2.1"
 dependencies = []
 
 [[package]]
+name = "evaera/promise"
+version = "4.0.0"
+dependencies = []
+
+[[package]]
+name = "howmanysmall/janitor"
+version = "1.17.0"
+dependencies = [["Promise", "evaera/promise@4.0.0"]]
+
+[[package]]
 name = "roblox/roact"
 version = "1.4.4"
 dependencies = []
@@ -15,7 +25,7 @@ dependencies = []
 [[package]]
 name = "santozstudios/restaurentsim"
 version = "0.1.0"
-dependencies = [["Promise", "evaera/promise@3.2.1"], ["Signal", "sleitnick/signal@1.5.0"], ["roact", "roblox/roact@1.4.4"]]
+dependencies = [["Janitor", "howmanysmall/janitor@1.17.0"], ["Promise", "evaera/promise@3.2.1"], ["Signal", "sleitnick/signal@1.5.0"], ["roact", "roblox/roact@1.4.4"]]
 
 [[package]]
 name = "sleitnick/signal"
