@@ -4,6 +4,7 @@ exclude = [
     "*.spec.luau",
     "*.d.lua",
     "src/shared/Packages/*",
+    "src/shared/Module/Utils/*"
 ]
 
 [rules]

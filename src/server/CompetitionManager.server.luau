@@ -45,11 +45,29 @@ function startRound()
 		end)
 		:andThenCall(Promise.delay, COMPETITION_DATA.ROUND_TIME)
 		:andThen(function()
-			-- if #roundSubmissions <= 0 then
-			--     print("NO SUBMISSIONS!!!")
+			for _, player in ipairs(Players:GetPlayers()) do
+				local character = player.Character
+				if not character then
+					continue
+				end
 
-			-- 	return Promise.reject(intermission)
-			-- end
+				local humanoid: Humanoid = character:FindFirstChild("Humanoid")
+				if not humanoid then
+					continue
+				end
+
+				local hd = humanoid:GetAppliedDescription()
+				table.insert(roundSubmissions, {
+					player = player,
+					hd = hd,
+				})
+			end
+
+			if #roundSubmissions <= 0 then
+				print("NO SUBMISSIONS!!!")
+
+				return Promise.reject(intermission)
+			end
 
 			print("Rating Started")
 			for _, outfitData in pairs(roundSubmissions) do

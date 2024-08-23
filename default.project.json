@@ -12,6 +12,9 @@
       },
       "RemoteEvents": {
         "$path": "RemoteEvents"
+      },
+      "RemoteFunctions": {
+        "$path": "RemoteFunctions"
       }
     },
 
