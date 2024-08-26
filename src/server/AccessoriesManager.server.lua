@@ -5,13 +5,13 @@ local HttpService = game:GetService("HttpService")
 local MarketPlaceService = game:GetService("MarketplaceService")
 
 -- Variables --
-local accessories = { 18360418757 }
+local accessories = { 18360418757, 18360418757, 18360418757, 18360418757 }
 local placedAccessories = {}
 local RemoteEvents = game.ReplicatedStorage.RemoteEvents
 
 -- Grid Info --
-local gridSizeY = 5
-local gridSpacing = 10
+local gridSizeY = 3
+local gridSpacing = 2
 
 -- Dependencies --
 local Promise = require(game.ReplicatedStorage.Packages.Promise)
@@ -68,8 +68,8 @@ local function AddAccessoryToGrid(accessory, assetInfo)
 	local index = #placedAccessories + 1
 
 	local yPos = (index - 1) % gridSizeY * gridSpacing
-	local xPos = 0
-	local zPos = math.floor((index - 1) / gridSizeY) * gridSpacing
+	local xPos = math.floor((index - 1) / gridSizeY) * gridSpacing
+	local zPos = 0
 
 	TableUtils:apply(accessory:GetDescendants(), function(child)
 		if child:IsA("TouchTransmitter") then
@@ -100,11 +100,13 @@ local function AddAccessoryToGrid(accessory, assetInfo)
 	assetTypeIdValue.Value = assetInfo.AssetTypeId
 
 	accessory:PivotTo(
-		CFrame.new(135, 15, -40) * CFrame.new(xPos, yPos, zPos) * CFrame.fromEulerAnglesXYZ(0, math.rad(45), 0)
+		CFrame.new(133, 15, -40) * CFrame.new(xPos, yPos, zPos) * CFrame.fromEulerAnglesXYZ(0, math.rad(45), 0)
 	)
 
 	accessory.Name = HttpService:GenerateGUID(false)
 	accessory.Parent = accessoriesFolder
+
+	table.insert(placedAccessories, accessory)
 end
 
 for _, accessoryId in ipairs(accessories) do
