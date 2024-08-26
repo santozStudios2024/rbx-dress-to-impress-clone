@@ -272,7 +272,7 @@ function CompetitionHeader:didMount()
 		self:gameStateUpdated(nil, LocalGameStateManager.getState())
 
 		self.janitor:Add(
-			LocalGameStateManager.onGameStateUpdated.Event:Connect(function(prevStateData, currentStateData)
+			LocalGameStateManager.onGameStateUpdated:Connect(function(prevStateData, currentStateData)
 				self:gameStateUpdated(prevStateData, currentStateData)
 			end),
 			"Disconnect"
