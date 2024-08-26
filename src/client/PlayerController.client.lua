@@ -25,7 +25,6 @@ local function UpdateCharacterPos(state)
 
 	character:WaitForChild("HumanoidRootPart")
 
-	print("Character Moved")
 	character:PivotTo(partToTeleportTo.CFrame * CFrame.new(0, 5, 0))
 end
 

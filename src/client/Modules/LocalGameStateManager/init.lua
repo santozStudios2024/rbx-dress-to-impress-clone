@@ -13,7 +13,6 @@ LocalGameStateManager.onGameStateUpdated = Signal.new()
 
 -- Private Functions --
 local function SetState(stateData)
-	print("GAME STATE UPDATED: " .. stateData.state)
 	currentStateData = stateData
 	LocalGameStateManager.onGameStateUpdated:Fire(currentStateData, stateData)
 end

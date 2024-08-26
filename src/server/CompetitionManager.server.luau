@@ -24,7 +24,6 @@ local function onPlayerRemoved(player)
 end
 
 function startRound()
-	print("Round Started")
 	-- Round Specific vars
 	local roundEndTime = nil
 
@@ -69,7 +68,6 @@ function startRound()
 				return Promise.reject(intermission)
 			end
 
-			print("Rating Started")
 			for _, outfitData in pairs(roundSubmissions) do
 				outfitData.rating = 0
 			end
@@ -113,8 +111,6 @@ function startRound()
 					themeData = currentThemeData,
 				},
 			})
-
-			print("Results Started")
 		end)
 		:andThenCall(Promise.delay, COMPETITION_DATA.RESULTS_TIME)
 		:andThen(function()
@@ -131,7 +127,6 @@ intermission = function()
 		Promise
 			.resolve()
 			:andThen(function()
-				print("Intermission started")
 				currentThemeData = {
 					theme = "Wild West",
 				}
