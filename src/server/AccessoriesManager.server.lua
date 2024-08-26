@@ -5,7 +5,7 @@ local HttpService = game:GetService("HttpService")
 local MarketPlaceService = game:GetService("MarketplaceService")
 
 -- Variables --
-local accessories = { 18360418757, 18360418757, 18360418757, 18360418757 }
+local accessories = { 18360418757 }
 local placedAccessories = {}
 local RemoteEvents = game.ReplicatedStorage.RemoteEvents
 
