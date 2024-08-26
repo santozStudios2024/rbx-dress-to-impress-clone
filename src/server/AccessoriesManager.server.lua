@@ -64,16 +64,6 @@ local function OnAccessoryManagerEvent(player, eventName, eventData)
 	end
 end
 
-local function AnchorModel(model: Model)
-	for _, part in ipairs(model:GetDescendants()) do
-		if not part:IsA("BasePart") then
-			continue
-		end
-
-		part.Anchored = true
-	end
-end
-
 local function AddAccessoryToGrid(accessory, assetInfo)
 	local index = #placedAccessories + 1
 
@@ -81,7 +71,19 @@ local function AddAccessoryToGrid(accessory, assetInfo)
 	local xPos = 0
 	local zPos = math.floor((index - 1) / gridSizeY) * gridSpacing
 
-	AnchorModel(accessory)
+	TableUtils:apply(accessory:GetDescendants(), function(child)
+		if child:IsA("TouchTransmitter") then
+			child:Destroy()
+		end
+
+		if not child:IsA("BasePart") then
+			return
+		end
+
+		child.CanTouch = false
+		child.CanCollide = false
+		child.Anchored = true
+	end)
 
 	CollectionService:AddTag(accessory, Constants.TAGS.ACCESSORY)
 
