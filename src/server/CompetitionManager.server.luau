@@ -14,9 +14,9 @@ local roundSubmissions = {}
 -- Constants --
 local COMPETITION_DATA = {
 	INTERMISSION_TIME = 15,
-	ROUND_TIME = 100,
+	ROUND_TIME = 10,
 	RATING_TIME_PER_SUBMISSION = 10,
-	RESULTS_TIME = 20,
+	RESULTS_TIME = 5,
 }
 
 local function onPlayerRemoved(player)

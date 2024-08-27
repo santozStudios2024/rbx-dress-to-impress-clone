@@ -15,12 +15,6 @@ Timer.TAG_NAME = "Timer"
 
 -- endTime and updateFunction
 function Timer:startTimer(timerData)
-	if self.timer then
-		self.timer:cancel()
-	end
-
-	task.wait()
-
 	return Promise.new(function(resolve, _, onCancel)
 		local timerCancelled = false
 
