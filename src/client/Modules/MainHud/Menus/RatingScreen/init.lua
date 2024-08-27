@@ -5,6 +5,7 @@ local BaseTheme = require(ClientModules.BaseTheme)
 local ImageAssets = require(game.ReplicatedStorage.Shared.Assets.ImageAssets)
 local TweeningFrame = require(ClientModules.Components.TweeningFrame)
 local LocalGameStateManager = require(ClientModules.LocalGameStateManager)
+local Promise = require(game.ReplicatedStorage.Packages.Promise)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local Timer = Utils.Timer
 
@@ -59,7 +60,10 @@ function RatingScreen:getStars()
 	return Roact.createFragment(guis)
 end
 
-function RatingScreen:init() end
+function RatingScreen:init()
+	self.currentIndex = 1
+	self.playerName, self.updatePlayerName = Roact.createBinding("")
+end
 
 function RatingScreen:render()
 	return createElement(BaseTheme.Consumer, {
@@ -97,7 +101,9 @@ function RatingScreen:render()
 							LayoutOrder = 1,
 							TextColor3 = Color3.new(0, 0, 0),
 							FontFace = theme.fonts.bold,
-							Text = "Rate This Outfit",
+							Text = self.playerName:map(function(playerName)
+								return "Rate " .. playerName .. "'s Outfit"
+							end),
 							TextScaled = true,
 						}),
 						Rating = createElement("Frame", {
@@ -130,6 +136,26 @@ function RatingScreen:render()
 end
 
 function RatingScreen:didUpdate()
+	Promise.new(function(resolve)
+		local gameState = LocalGameStateManager.getState()
+
+		resolve(gameState)
+	end):andThen(function(gameState)
+		local submissions = gameState.metaData.submissions
+
+		local submissionData = submissions[self.currentIndex]
+
+		if not submissionData then
+			self.updatePlayerName("")
+			return
+		end
+
+		if not submissionData.player then
+			self.updatePlayerName("")
+		end
+
+		self.updatePlayerName(submissionData.player.Name)
+	end)
 	if not self.props.Input.resetScreen then
 		return
 	end
