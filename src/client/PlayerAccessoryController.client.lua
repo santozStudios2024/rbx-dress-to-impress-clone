@@ -5,6 +5,8 @@ local CollectionService = game:GetService("CollectionService")
 -- Dependencies --
 local Constatns = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local Janitor = require(game.ReplicatedStorage.Packages.Janitor)
+local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
+local TableUtils = Utils.TableUtils
 
 -- Variables --
 local accessoryAddedSignal = CollectionService:GetInstanceAddedSignal(Constatns.TAGS.ACCESSORY)
@@ -78,28 +80,42 @@ local function OnAccessoryAdded(accessory)
 	local cd = Instance.new("ClickDetector")
 	cd.Parent = accessory
 
-	local highlight = Instance.new("Highlight")
-	highlight.Parent = accessory
-	highlight.OutlineColor = Color3.new(1, 1, 1)
-	highlight.FillTransparency = 1
-	highlight.OutlineTransparency = 1
-	highlight.DepthMode = Enum.HighlightDepthMode.Occluded
+	local highlights = {}
+
+	TableUtils:apply(accessory:GetDescendants(), function(child)
+		if not child:IsA("BasePart") then
+			return
+		end
+
+		local highlight = Instance.new("Highlight")
+		highlight.Parent = child
+		highlight.OutlineColor = Color3.new(1, 1, 1)
+		highlight.FillTransparency = 1
+		highlight.OutlineTransparency = 1
+		highlight.DepthMode = Enum.HighlightDepthMode.Occluded
+
+		table.insert(highlights, highlight)
+	end)
 
 	local janitor = Janitor.new()
 
 	local clickedConnection = cd.MouseClick:Connect(function()
 		-- ToggleAccessory(accessory)
 		RemoteEvents.AccessoryManager_RE:FireServer(Constatns.EVENTS.ACCESSORY_MANAGER_EVENTS.TOGGLE_ACCESSORY, {
-			accessoryModel = accessory,
+			accessory = accessory,
 		})
 	end)
 
 	local mouseEnterConnection = cd.MouseHoverEnter:Connect(function()
-		highlight.OutlineTransparency = 0
+		TableUtils:apply(highlights, function(highlight)
+			highlight.OutlineTransparency = 0
+		end)
 	end)
 
 	local mouseLeaveConnection = cd.MouseHoverLeave:Connect(function()
-		highlight.OutlineTransparency = 1
+		TableUtils:apply(highlights, function(highlight)
+			highlight.OutlineTransparency = 1
+		end)
 	end)
 
 	janitor:Add(clickedConnection, "Disconnect")

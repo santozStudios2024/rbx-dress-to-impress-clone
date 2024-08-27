@@ -1,27 +1,27 @@
 -- Services --
-local InsertService = game:GetService("InsertService")
-local CollectionService = game:GetService("CollectionService")
-local HttpService = game:GetService("HttpService")
-local MarketPlaceService = game:GetService("MarketplaceService")
+-- local InsertService = game:GetService("InsertService")
+-- local CollectionService = game:GetService("CollectionService")
+-- local HttpService = game:GetService("HttpService")
+-- local MarketPlaceService = game:GetService("MarketplaceService")
 
 -- Variables --
-local accessories = { 18360418757 }
-local placedAccessories = {}
+-- local accessories = { 18360418757 }
+-- local placedAccessories = {}
 local RemoteEvents = game.ReplicatedStorage.RemoteEvents
 
 -- Grid Info --
-local gridSizeY = 3
-local gridSpacing = 2
+-- local gridSizeY = 3
+-- local gridSpacing = 2
 
 -- Dependencies --
-local Promise = require(game.ReplicatedStorage.Packages.Promise)
+-- local Promise = require(game.ReplicatedStorage.Packages.Promise)
 local Constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local TableUtils = Utils.TableUtils
 
-local accessoriesFolder = Instance.new("Folder")
-accessoriesFolder.Name = "Accessories"
-accessoriesFolder.Parent = workspace.World
+-- local accessoriesFolder = Instance.new("Folder")
+-- accessoriesFolder.Name = "Accessories"
+-- accessoriesFolder.Parent = workspace.World
 
 local function ToggleAccessory(player, data)
 	local character = player.character
@@ -34,11 +34,9 @@ local function ToggleAccessory(player, data)
 		return
 	end
 
-	local accessoryModel = data.accessoryModel
-	local accessory = accessoryModel:FindFirstChildOfClass("Accessory")
-	accessory.Name = accessoryModel.Name
+	local accessory = data.accessory
 
-	local existingAccessory = character:FindFirstChild(accessoryModel.Name)
+	local existingAccessory = character:FindFirstChild(accessory.Name)
 
 	if existingAccessory then
 		existingAccessory:Destroy()
@@ -64,72 +62,72 @@ local function OnAccessoryManagerEvent(player, eventName, eventData)
 	end
 end
 
-local function AddAccessoryToGrid(accessory, assetInfo)
-	local index = #placedAccessories + 1
+-- local function AddAccessoryToGrid(accessory, assetInfo)
+-- 	local index = #placedAccessories + 1
 
-	local yPos = (index - 1) % gridSizeY * gridSpacing
-	local xPos = math.floor((index - 1) / gridSizeY) * gridSpacing
-	local zPos = 0
+-- 	local yPos = (index - 1) % gridSizeY * gridSpacing
+-- 	local xPos = math.floor((index - 1) / gridSizeY) * gridSpacing
+-- 	local zPos = 0
 
-	TableUtils:apply(accessory:GetDescendants(), function(child)
-		if child:IsA("TouchTransmitter") then
-			child:Destroy()
-		end
+-- 	TableUtils:apply(accessory:GetDescendants(), function(child)
+-- 		if child:IsA("TouchTransmitter") then
+-- 			child:Destroy()
+-- 		end
 
-		if not child:IsA("BasePart") then
-			return
-		end
+-- 		if not child:IsA("BasePart") then
+-- 			return
+-- 		end
 
-		child.CanTouch = false
-		child.CanCollide = false
-		child.Anchored = true
-	end)
+-- 		child.CanTouch = false
+-- 		child.CanCollide = false
+-- 		child.Anchored = true
+-- 	end)
 
-	CollectionService:AddTag(accessory, Constants.TAGS.ACCESSORY)
+-- 	CollectionService:AddTag(accessory, Constants.TAGS.ACCESSORY)
 
-	-- Add Asset ID Value --
-	local assetIdValue = Instance.new("NumberValue")
-	assetIdValue.Parent = accessory
-	assetIdValue.Name = "AssetID"
-	assetIdValue.Value = assetInfo.AssetId
+-- 	-- Add Asset ID Value --
+-- 	local assetIdValue = Instance.new("NumberValue")
+-- 	assetIdValue.Parent = accessory
+-- 	assetIdValue.Name = "AssetID"
+-- 	assetIdValue.Value = assetInfo.AssetId
 
-	-- Add Asset Type ID --
-	local assetTypeIdValue = Instance.new("NumberValue")
-	assetTypeIdValue.Name = "AssetTypeId"
-	assetTypeIdValue.Parent = accessory
-	assetTypeIdValue.Value = assetInfo.AssetTypeId
+-- 	-- Add Asset Type ID --
+-- 	local assetTypeIdValue = Instance.new("NumberValue")
+-- 	assetTypeIdValue.Name = "AssetTypeId"
+-- 	assetTypeIdValue.Parent = accessory
+-- 	assetTypeIdValue.Value = assetInfo.AssetTypeId
 
-	accessory:PivotTo(
-		CFrame.new(133, 15, -40) * CFrame.new(xPos, yPos, zPos) * CFrame.fromEulerAnglesXYZ(0, math.rad(45), 0)
-	)
+-- 	accessory:PivotTo(
+-- 		CFrame.new(133, 15, -40) * CFrame.new(xPos, yPos, zPos) * CFrame.fromEulerAnglesXYZ(0, math.rad(45), 0)
+-- 	)
 
-	accessory.Name = HttpService:GenerateGUID(false)
-	accessory.Parent = accessoriesFolder
+-- 	accessory.Name = HttpService:GenerateGUID(false)
+-- 	accessory.Parent = accessoriesFolder
 
-	table.insert(placedAccessories, accessory)
-end
+-- 	table.insert(placedAccessories, accessory)
+-- end
 
-for _, accessoryId in ipairs(accessories) do
-	Promise.new(function(resolve, reject)
-		local assetLoadedSuccess, model = pcall(function()
-			return InsertService:LoadAsset(accessoryId)
-		end)
+-- for _, accessoryId in ipairs(accessories) do
+-- 	Promise.new(function(resolve, reject)
+-- 		local assetLoadedSuccess, model = pcall(function()
+-- 			return InsertService:LoadAsset(accessoryId)
+-- 		end)
 
-		local productInfoSuccess, assetInfo = pcall(function()
-			return MarketPlaceService:GetProductInfo(accessoryId)
-		end)
+-- 		local productInfoSuccess, assetInfo = pcall(function()
+-- 			return MarketPlaceService:GetProductInfo(accessoryId)
+-- 		end)
 
-		if not assetLoadedSuccess or not productInfoSuccess then
-			reject("Failed to load asset.")
-			return
-		end
+-- 		if not assetLoadedSuccess or not productInfoSuccess then
+-- 			reject("Failed to load asset.")
+-- 			return
+-- 		end
 
-		resolve(model, assetInfo)
-	end)
-		:andThen(function(accessoryModel, assetInfo)
-			AddAccessoryToGrid(accessoryModel, assetInfo)
-		end)
-		:catch(warn)
-end
+-- 		resolve(model, assetInfo)
+-- 	end)
+-- 		:andThen(function(accessoryModel, assetInfo)
+-- 			AddAccessoryToGrid(accessoryModel, assetInfo)
+-- 		end)
+-- 		:catch(warn)
+-- end
 
 RemoteEvents.AccessoryManager_RE.OnServerEvent:Connect(OnAccessoryManagerEvent)
