@@ -15,7 +15,7 @@ local roundSubmissions = {}
 -- Constants --
 local COMPETITION_DATA = {
 	INTERMISSION_TIME = 15,
-	ROUND_TIME = 10,
+	ROUND_TIME = 30,
 	RATING_TIME_PER_SUBMISSION = 12,
 	RESULTS_TIME = 5,
 }
