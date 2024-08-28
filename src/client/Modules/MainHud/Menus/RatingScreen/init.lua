@@ -1,3 +1,6 @@
+-- Services --
+local Players = game:GetService("Players")
+
 -- Dependencies --
 local ClientModules = script.Parent.Parent.Parent
 local Roact = require(game.ReplicatedStorage.Packages.roact)
@@ -12,6 +15,7 @@ local Timer = Utils.Timer
 -- Variables --
 local createElement = Roact.createElement
 local roactEvents = Roact.Event
+local localPlayer = Players.LocalPlayer
 
 local RatingScreen = Roact.Component:extend("RatingScreen")
 
@@ -62,7 +66,8 @@ end
 
 function RatingScreen:init()
 	self.currentIndex = 1
-	self.playerName, self.updatePlayerName = Roact.createBinding("")
+
+	self.submissionData, self.updateSubmissionData = Roact.createBinding()
 end
 
 function RatingScreen:render()
@@ -78,6 +83,17 @@ function RatingScreen:render()
 					Position = UDim2.fromScale(0.5, 0.95),
 					Size = UDim2.fromScale(0.5, 0.25),
 					BackgroundTransparency = 1,
+					Visible = self.submissionData:map(function(submissionData)
+						if not submissionData then
+							return false
+						end
+
+						if not submissionData.player then
+							return false
+						end
+
+						return submissionData.player.UserId ~= localPlayer.UserId
+					end),
 				}, {
 					UIAspectRatioConstraint = createElement("UIAspectRatioConstraint", {
 						AspectRatio = 2.5,
@@ -101,8 +117,16 @@ function RatingScreen:render()
 							LayoutOrder = 1,
 							TextColor3 = Color3.new(0, 0, 0),
 							FontFace = theme.fonts.bold,
-							Text = self.playerName:map(function(playerName)
-								return "Rate " .. playerName .. "'s Outfit"
+							Text = self.submissionData:map(function(submissionData)
+								if not submissionData then
+									return ""
+								end
+
+								if not submissionData.player then
+									return ""
+								end
+
+								return "Rate " .. submissionData.player.Name .. "'s Outfit"
 							end),
 							TextScaled = true,
 						}),
@@ -146,15 +170,11 @@ function RatingScreen:didUpdate()
 		local submissionData = submissions[self.currentIndex]
 
 		if not submissionData then
-			self.updatePlayerName("")
+			self.updateSubmissionData()
 			return
 		end
 
-		if not submissionData.player then
-			self.updatePlayerName("")
-		end
-
-		self.updatePlayerName(submissionData.player.Name)
+		self.updateSubmissionData(submissionData)
 	end)
 	if not self.props.Input.resetScreen then
 		return
