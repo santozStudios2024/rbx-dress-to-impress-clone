@@ -11,6 +11,8 @@ local Constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local Promise = require(game.ReplicatedStorage.Packages.Promise)
 local HudGuiController = require(clientModules.HudGuiController)
 local Janitor = require(game.ReplicatedStorage.Packages.Janitor)
+local RampWalkModule = require(clientModules.RampWalkModule)
+local PlayerController = require(game.ReplicatedStorage.Shared.Modules.PlayerController)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local UIRatioHandler = Utils.UIRatioHandler
 local Timer = Utils.Timer
@@ -84,6 +86,9 @@ function CompetitionHeader:gameStateUpdated(_, currentStateData)
 				warn(tostring(err))
 			end)
 
+			RampWalkModule.toggleCamera(true)
+			PlayerController.toggleControls(false)
+
 			HudGuiController.openMenu("RatingScreen", {
 				resetScreen = true,
 			})
@@ -92,6 +97,9 @@ function CompetitionHeader:gameStateUpdated(_, currentStateData)
 			self.updateTimerText("")
 		end
 	elseif currentStateData.state == Constants.GAME_STATES.RESULTS then
+		HudGuiController.closeMenu("RatingScreen")
+		RampWalkModule.toggleCamera(false)
+		PlayerController.toggleControls(true)
 		if currentStateData.metaData then
 			self.updateThemeText(currentStateData.metaData.themeData.theme)
 			self.updateRoundInfo("RESULTS")
@@ -105,8 +113,6 @@ function CompetitionHeader:gameStateUpdated(_, currentStateData)
 			}):catch(function(err)
 				warn(tostring(err))
 			end)
-
-			HudGuiController.closeMenu("RatingScreen")
 		else
 			-- self.updateRoundInfo('<font color="rgb(75, 252, 255)">Results:</font>\n')
 			self.updateRoundInfo("")
