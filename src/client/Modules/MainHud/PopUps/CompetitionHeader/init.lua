@@ -13,6 +13,7 @@ local HudGuiController = require(clientModules.HudGuiController)
 local Janitor = require(game.ReplicatedStorage.Packages.Janitor)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local UIRatioHandler = Utils.UIRatioHandler
+local Timer = Utils.Timer
 
 local createElement = Roact.createElement
 
@@ -23,36 +24,7 @@ function CompetitionHeader:startTimer(timerData)
 		self.timer:cancel()
 	end
 
-	task.wait()
-
-	return Promise.new(function(resolve, _, onCancel)
-		local timerCancelled = false
-
-		onCancel(function()
-			timerCancelled = true
-		end)
-
-		while true do
-			if timerCancelled then
-				resolve({
-					timerCompleted = false,
-				})
-			end
-
-			if os.time() > timerData.endTime then
-				resolve({
-					timerCompleted = true,
-				})
-			end
-
-			if timerData.updateFunction then
-				local timeLeft = timerData.endTime - os.time()
-				timerData.updateFunction(timeLeft)
-			end
-
-			task.wait()
-		end
-	end)
+	return Timer:startTimer(timerData)
 end
 
 function CompetitionHeader:gameStateUpdated(_, currentStateData)
@@ -111,6 +83,10 @@ function CompetitionHeader:gameStateUpdated(_, currentStateData)
 			}):catch(function(err)
 				warn(tostring(err))
 			end)
+
+			HudGuiController.openMenu("RatingScreen", {
+				resetScreen = true,
+			})
 		else
 			self.updateRoundInfo("")
 			self.updateTimerText("")
@@ -129,6 +105,8 @@ function CompetitionHeader:gameStateUpdated(_, currentStateData)
 			}):catch(function(err)
 				warn(tostring(err))
 			end)
+
+			HudGuiController.closeMenu("RatingScreen")
 		else
 			-- self.updateRoundInfo('<font color="rgb(75, 252, 255)">Results:</font>\n')
 			self.updateRoundInfo("")

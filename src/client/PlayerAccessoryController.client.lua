@@ -75,8 +75,6 @@ local RemoteEvents = game.ReplicatedStorage.RemoteEvents
 -- end
 
 local function OnAccessoryAdded(accessory)
-	print("On Accessory added")
-
 	local cd = Instance.new("ClickDetector")
 	cd.Parent = accessory
 
