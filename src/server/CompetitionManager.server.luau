@@ -5,6 +5,7 @@ local Players = game:GetService("Players")
 local Promise = require(game.ReplicatedStorage.Packages.Promise)
 local GameStateManager = require(game.ServerScriptService.Server.Modules.GameStateManager)
 local constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
+local PlayerController = require(game.ReplicatedStorage.Shared.Modules.PlayerController)
 
 -- Variables --
 local currentThemeData
@@ -14,8 +15,8 @@ local roundSubmissions = {}
 -- Constants --
 local COMPETITION_DATA = {
 	INTERMISSION_TIME = 15,
-	ROUND_TIME = 10,
-	RATING_TIME_PER_SUBMISSION = 10,
+	ROUND_TIME = 30,
+	RATING_TIME_PER_SUBMISSION = 12,
 	RESULTS_TIME = 5,
 }
 
@@ -45,20 +46,8 @@ function startRound()
 		:andThenCall(Promise.delay, COMPETITION_DATA.ROUND_TIME)
 		:andThen(function()
 			for _, player in ipairs(Players:GetPlayers()) do
-				local character = player.Character
-				if not character then
-					continue
-				end
-
-				local humanoid: Humanoid = character:FindFirstChild("Humanoid")
-				if not humanoid then
-					continue
-				end
-
-				local hd = humanoid:GetAppliedDescription()
 				table.insert(roundSubmissions, {
 					player = player,
-					hd = hd,
 				})
 			end
 
@@ -114,6 +103,9 @@ function startRound()
 		end)
 		:andThenCall(Promise.delay, COMPETITION_DATA.RESULTS_TIME)
 		:andThen(function()
+			for _, player in ipairs(Players:GetPlayers()) do
+				PlayerController.resetDescription(player)
+			end
 			return intermission
 		end)
 		:catch(function(state)

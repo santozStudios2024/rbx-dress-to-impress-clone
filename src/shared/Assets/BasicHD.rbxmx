@@ -1,0 +1,144 @@
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+	<Meta name="ExplicitAutoJoints">true</Meta>
+	<External>null</External>
+	<External>nil</External>
+	<Item class="HumanoidDescription" referent="RBXfb36cb64459a4b878867160bf8d09fa6">
+		<Properties>
+			<string name="AccessoryRigidAndLayeredBlob">[]</string>
+			<BinaryString name="AttributesSerialize"></BinaryString>
+			<float name="BodyTypeScale">0</float>
+			<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+			<int64 name="ClimbAnimation">0</int64>
+			<bool name="DefinesCapabilities">false</bool>
+			<float name="DepthScale">1</float>
+			<string name="EmotesDataInternal"></string>
+			<string name="EquippedEmotesDataInternal"></string>
+			<int64 name="Face">0</int64>
+			<int64 name="FallAnimation">0</int64>
+			<int64 name="GraphicTShirt">0</int64>
+			<float name="HeadScale">1</float>
+			<float name="HeightScale">1</float>
+			<int64 name="IdleAnimation">0</int64>
+			<int64 name="JumpAnimation">0</int64>
+			<int64 name="MoodAnimation">0</int64>
+			<string name="Name">HumanoidDescription</string>
+			<int64 name="Pants">0</int64>
+			<float name="ProportionScale">0</float>
+			<int64 name="RunAnimation">0</int64>
+			<int64 name="Shirt">0</int64>
+			<int64 name="SourceAssetId">-1</int64>
+			<int64 name="SwimAnimation">0</int64>
+			<BinaryString name="Tags"></BinaryString>
+			<int64 name="WalkAnimation">0</int64>
+			<float name="WidthScale">1</float>
+		</Properties>
+		<Item class="BodyPartDescription" referent="RBX49eb38238fa244e9877abb79b4f8f372">
+			<Properties>
+				<int64 name="AssetId">0</int64>
+				<BinaryString name="AttributesSerialize"></BinaryString>
+				<token name="BodyPart">0</token>
+				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+				<Color3 name="Color">
+					<R>0.5</R>
+					<G>0.5</G>
+					<B>0.5</B>
+				</Color3>
+				<bool name="DefinesCapabilities">false</bool>
+				<Ref name="Instance">null</Ref>
+				<string name="Name">BodyPartDescription</string>
+				<int64 name="SourceAssetId">-1</int64>
+				<BinaryString name="Tags"></BinaryString>
+			</Properties>
+		</Item>
+		<Item class="BodyPartDescription" referent="RBX914f3226ef444a16a0b04e3341f554df">
+			<Properties>
+				<int64 name="AssetId">0</int64>
+				<BinaryString name="AttributesSerialize"></BinaryString>
+				<token name="BodyPart">2</token>
+				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+				<Color3 name="Color">
+					<R>0.5</R>
+					<G>0.5</G>
+					<B>0.5</B>
+				</Color3>
+				<bool name="DefinesCapabilities">false</bool>
+				<Ref name="Instance">null</Ref>
+				<string name="Name">BodyPartDescription</string>
+				<int64 name="SourceAssetId">-1</int64>
+				<BinaryString name="Tags"></BinaryString>
+			</Properties>
+		</Item>
+		<Item class="BodyPartDescription" referent="RBX490b26a0dc5848e4b310e23dba73146a">
+			<Properties>
+				<int64 name="AssetId">0</int64>
+				<BinaryString name="AttributesSerialize"></BinaryString>
+				<token name="BodyPart">4</token>
+				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+				<Color3 name="Color">
+					<R>0.5</R>
+					<G>0.5</G>
+					<B>0.5</B>
+				</Color3>
+				<bool name="DefinesCapabilities">false</bool>
+				<Ref name="Instance">null</Ref>
+				<string name="Name">BodyPartDescription</string>
+				<int64 name="SourceAssetId">-1</int64>
+				<BinaryString name="Tags"></BinaryString>
+			</Properties>
+		</Item>
+		<Item class="BodyPartDescription" referent="RBX006ffc94d19742d285fff8dbefb45c1a">
+			<Properties>
+				<int64 name="AssetId">0</int64>
+				<BinaryString name="AttributesSerialize"></BinaryString>
+				<token name="BodyPart">3</token>
+				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+				<Color3 name="Color">
+					<R>0.5</R>
+					<G>0.5</G>
+					<B>0.5</B>
+				</Color3>
+				<bool name="DefinesCapabilities">false</bool>
+				<Ref name="Instance">null</Ref>
+				<string name="Name">BodyPartDescription</string>
+				<int64 name="SourceAssetId">-1</int64>
+				<BinaryString name="Tags"></BinaryString>
+			</Properties>
+		</Item>
+		<Item class="BodyPartDescription" referent="RBX99a4b8fa0e194611967ad515aecca3f2">
+			<Properties>
+				<int64 name="AssetId">0</int64>
+				<BinaryString name="AttributesSerialize"></BinaryString>
+				<token name="BodyPart">5</token>
+				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+				<Color3 name="Color">
+					<R>0.5</R>
+					<G>0.5</G>
+					<B>0.5</B>
+				</Color3>
+				<bool name="DefinesCapabilities">false</bool>
+				<Ref name="Instance">null</Ref>
+				<string name="Name">BodyPartDescription</string>
+				<int64 name="SourceAssetId">-1</int64>
+				<BinaryString name="Tags"></BinaryString>
+			</Properties>
+		</Item>
+		<Item class="BodyPartDescription" referent="RBX60eeeeaccf10466ab79f23c621d2e9a9">
+			<Properties>
+				<int64 name="AssetId">0</int64>
+				<BinaryString name="AttributesSerialize"></BinaryString>
+				<token name="BodyPart">1</token>
+				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+				<Color3 name="Color">
+					<R>0.5</R>
+					<G>0.5</G>
+					<B>0.5</B>
+				</Color3>
+				<bool name="DefinesCapabilities">false</bool>
+				<Ref name="Instance">null</Ref>
+				<string name="Name">BodyPartDescription</string>
+				<int64 name="SourceAssetId">-1</int64>
+				<BinaryString name="Tags"></BinaryString>
+			</Properties>
+		</Item>
+	</Item>
+</roblox>

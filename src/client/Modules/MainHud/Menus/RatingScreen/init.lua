@@ -9,6 +9,7 @@ local ImageAssets = require(game.ReplicatedStorage.Shared.Assets.ImageAssets)
 local TweeningFrame = require(ClientModules.Components.TweeningFrame)
 local LocalGameStateManager = require(ClientModules.LocalGameStateManager)
 local Promise = require(game.ReplicatedStorage.Packages.Promise)
+local RampWalkModule = require(ClientModules.RampWalkModule)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local Timer = Utils.Timer
 
@@ -196,15 +197,41 @@ function RatingScreen:didUpdate()
 				return
 			end
 
-			if not gameState.metaData.submissions[nextIndex] then
+			local submissionData = gameState.metaData.submissions[nextIndex]
+			if not submissionData then
 				return
 			end
+
+			RampWalkModule.startWalk(submissionData):andThen(function(model)
+				task.wait(gameState.metaData.ratingTime)
+
+				if not model then
+					return
+				end
+
+				model:Destroy()
+			end)
 
 			self.currentIndex = nextIndex
 
 			self:setState({})
 		end,
 	})
+
+	local submissionData = gameState.metaData.submissions[self.currentIndex]
+	if not submissionData then
+		return
+	end
+
+	RampWalkModule.startWalk(submissionData):andThen(function(model)
+		task.wait(gameState.metaData.ratingTime)
+
+		if not model then
+			return
+		end
+
+		model:Destroy()
+	end)
 end
 
 return RatingScreen
