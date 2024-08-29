@@ -182,6 +182,7 @@ function RatingScreen:didUpdate()
 	end
 
 	local gameState = LocalGameStateManager.getState()
+	self.currentIndex = 1
 	self.props.Input.resetScreen = false
 
 	self.timer = self:startTimer({
@@ -202,6 +203,7 @@ function RatingScreen:didUpdate()
 				return
 			end
 
+			print("Start walk from from timer")
 			RampWalkModule.startWalk(submissionData):andThen(function(model)
 				task.wait(gameState.metaData.ratingTime)
 
@@ -222,6 +224,8 @@ function RatingScreen:didUpdate()
 	if not submissionData then
 		return
 	end
+
+	print("First timer start walk")
 
 	RampWalkModule.startWalk(submissionData):andThen(function(model)
 		task.wait(gameState.metaData.ratingTime)
