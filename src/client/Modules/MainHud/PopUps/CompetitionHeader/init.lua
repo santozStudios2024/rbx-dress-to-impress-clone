@@ -12,6 +12,7 @@ local Promise = require(game.ReplicatedStorage.Packages.Promise)
 local HudGuiController = require(clientModules.HudGuiController)
 local Janitor = require(game.ReplicatedStorage.Packages.Janitor)
 local RampWalkModule = require(clientModules.RampWalkModule)
+local PodiumManagerModule = require(clientModules.PodiumManagerModule)
 local PlayerController = require(game.ReplicatedStorage.Shared.Modules.PlayerController)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local UIRatioHandler = Utils.UIRatioHandler
@@ -35,6 +36,9 @@ function CompetitionHeader:gameStateUpdated(_, currentStateData)
 	end
 
 	if currentStateData.state == Constants.GAME_STATES.INTERMISSION then
+		PodiumManagerModule.togglePodium(false)
+		PodiumManagerModule.toggleCamera(false)
+
 		if currentStateData.metaData then
 			self.updateThemeText(currentStateData.metaData.themeData.theme)
 			self.updateRoundInfo("INTERMISSION")
@@ -101,6 +105,8 @@ function CompetitionHeader:gameStateUpdated(_, currentStateData)
 		RampWalkModule.toggleCamera(false)
 		PlayerController.toggleControls(true)
 		if currentStateData.metaData then
+			PodiumManagerModule.togglePodium(true)
+			PodiumManagerModule.toggleCamera(true)
 			self.updateThemeText(currentStateData.metaData.themeData.theme)
 			self.updateRoundInfo("RESULTS")
 

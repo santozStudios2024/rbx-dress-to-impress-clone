@@ -1,7 +1,9 @@
 -- Services --
 
 -- Dependencies --
+local ClientModule = script.Parent
 local Promise = require(game.ReplicatedStorage.Packages.Promise)
+local CameraManagerModule = require(ClientModule.CameraManagerModule)
 
 -- Variables --
 local assets = game.ReplicatedStorage.Shared.Assets
@@ -66,7 +68,6 @@ function RampWalkModule.startWalk(playerData)
 end
 
 function RampWalkModule.toggleCamera(enable)
-	local currentCamera = workspace.CurrentCamera
 	if enable then
 		local rampFolder = workspace.World.Models.Ramp
 		if not rampFolder then
@@ -75,10 +76,9 @@ function RampWalkModule.toggleCamera(enable)
 
 		local cameraPos = rampFolder.CameraPos
 
-		currentCamera.CameraType = Enum.CameraType.Scriptable
-		currentCamera.CFrame = cameraPos.CFrame
+		CameraManagerModule.toggleCamera(enable, cameraPos.CFrame)
 	else
-		currentCamera.CameraType = Enum.CameraType.Custom
+		CameraManagerModule.toggleCamera(enable)
 	end
 end
 

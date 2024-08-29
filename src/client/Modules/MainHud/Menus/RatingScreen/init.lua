@@ -10,6 +10,7 @@ local TweeningFrame = require(ClientModules.Components.TweeningFrame)
 local LocalGameStateManager = require(ClientModules.LocalGameStateManager)
 local Promise = require(game.ReplicatedStorage.Packages.Promise)
 local RampWalkModule = require(ClientModules.RampWalkModule)
+local Constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local Timer = Utils.Timer
 
@@ -17,6 +18,7 @@ local Timer = Utils.Timer
 local createElement = Roact.createElement
 local roactEvents = Roact.Event
 local localPlayer = Players.LocalPlayer
+local RemoteEvents = game.ReplicatedStorage.RemoteEvents
 
 local RatingScreen = Roact.Component:extend("RatingScreen")
 
@@ -45,15 +47,26 @@ function RatingScreen:getStars()
 					return
 				end
 
-				-- local pageData = self.props.Input.submissions[self.currentIndex]
-				-- if not pageData then
-				-- 	return
-				-- end
+				local gameState = LocalGameStateManager.getState()
+				if not gameState.metaData then
+					warn("NO META DATA FOUND!!")
+					return
+				end
 
-				-- RemoteEvents.Competition_RE:FireServer(constants.EVENTS.COMPETITION_EVENTS.RATING, {
-				-- 	userId = pageData._id,
-				-- 	rating = i,
-				-- })
+				local submissions = gameState.metaData.submissions
+				if not submissions then
+					return
+				end
+
+				local outfitData = submissions[self.currentIndex]
+				if not outfitData then
+					return
+				end
+
+				RemoteEvents.Competition_RE:FireServer(Constants.EVENTS.COMPETITION_EVENTS.RATING, {
+					userId = outfitData.player.UserId,
+					rating = i,
+				})
 
 				updateRating(i)
 			end,
