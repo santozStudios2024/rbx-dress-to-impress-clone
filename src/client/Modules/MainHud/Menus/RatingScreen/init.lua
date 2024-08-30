@@ -100,7 +100,13 @@ function RatingScreen:getEmotesList()
 						BackgroundTransparency = 1,
 						ZIndex = 10,
 						[roactEvents.Activated] = function()
-							self.updateSelectedEmote(emote)
+							local selectedEmote = self.selectedEmote:getValue()
+
+							if selectedEmote == emote then
+								self.updateSelectedEmote()
+							else
+								self.updateSelectedEmote(emote)
+							end
 						end,
 					}),
 				})
