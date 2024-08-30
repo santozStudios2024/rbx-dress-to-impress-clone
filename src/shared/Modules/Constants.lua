@@ -6,9 +6,15 @@ local Constants = {
 		INTERMISSION = "Intermission",
 	},
 	EVENTS = {
-		GAME_STATE_EVENTS = "GameStateEvents",
+		GAME_STATE_EVENTS = {
+			UPDATE_STATE = "UpdateState",
+			GET_STATE = "GetState",
+		},
 		ACCESSORY_MANAGER_EVENTS = {
 			TOGGLE_ACCESSORY = "ToggleAccessory",
+		},
+		COMPETITION_EVENTS = {
+			RATING = "Rating",
 		},
 	},
 	TAGS = {

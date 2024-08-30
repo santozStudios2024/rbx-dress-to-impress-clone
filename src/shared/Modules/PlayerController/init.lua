@@ -65,4 +65,30 @@ function PlayerController.resetDescription(player)
 	end)
 end
 
+function PlayerController.playAnimation(character, animation, animProps)
+	local hum = character:FindFirstChildOfClass("Humanoid")
+	if not hum then
+		return
+	end
+
+	local animator: Animator = hum:FindFirstChildOfClass("Animator")
+	if not animator then
+		return
+	end
+
+	local animTrack: AnimationTrack = animator:LoadAnimation(animation)
+	if not animTrack then
+		return
+	end
+
+	if animProps then
+		for prop, value in pairs(animProps) do
+			animTrack[prop] = value
+		end
+	end
+
+	print("Animation Platyed")
+	animTrack:Play()
+end
+
 return PlayerController

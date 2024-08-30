@@ -6,22 +6,60 @@ local Promise = require(game.ReplicatedStorage.Packages.Promise)
 local GameStateManager = require(game.ServerScriptService.Server.Modules.GameStateManager)
 local constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local PlayerController = require(game.ReplicatedStorage.Shared.Modules.PlayerController)
+local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
+local TableUtils = Utils.TableUtils
 
 -- Variables --
 local currentThemeData
 local intermission
 local roundSubmissions = {}
+local RemoteEvents = game.ReplicatedStorage.RemoteEvents
 
 -- Constants --
 local COMPETITION_DATA = {
-	INTERMISSION_TIME = 15,
-	ROUND_TIME = 30,
-	RATING_TIME_PER_SUBMISSION = 12,
-	RESULTS_TIME = 5,
+	INTERMISSION_TIME = 10,
+	ROUND_TIME = 10,
+	RATING_TIME_PER_SUBMISSION = 18,
+	RESULTS_TIME = 10,
 }
 
+local function rateCreation(player, ratingData)
+	local index = TableUtils:findBy(roundSubmissions, function(outfitData)
+		return outfitData.player.UserId == ratingData.userId
+	end)
+
+	if not index then
+		return
+	end
+
+	if player.UserId == ratingData.userId then
+		return
+	end
+
+	local outfitData = roundSubmissions[index]
+	if not outfitData.playerRatings then
+		outfitData.playerRatings = {}
+	end
+
+	outfitData.playerRatings[player.UserId] = ratingData.rating
+end
+
 local function onPlayerRemoved(player)
-	roundSubmissions[player.UserId] = nil
+	local index = TableUtils:findBy(roundSubmissions, function(outfitData)
+		return outfitData.player.UserId == player.userId
+	end)
+
+	if not index then
+		return
+	end
+
+	table.remove(roundSubmissions, index)
+end
+
+local function OnCompetitionEvent_RE(player, eventName, eventData)
+	if eventName == constants.EVENTS.COMPETITION_EVENTS.RATING then
+		rateCreation(player, eventData)
+	end
 end
 
 function startRound()
@@ -147,6 +185,7 @@ intermission = function()
 	end)
 end
 
+RemoteEvents.Competition_RE.OnServerEvent:Connect(OnCompetitionEvent_RE)
 Players.PlayerRemoving:Connect(onPlayerRemoved)
 
 currentThemeData = {
