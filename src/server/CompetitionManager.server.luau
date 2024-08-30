@@ -19,7 +19,7 @@ local RemoteEvents = game.ReplicatedStorage.RemoteEvents
 local COMPETITION_DATA = {
 	INTERMISSION_TIME = 10,
 	ROUND_TIME = 10,
-	RATING_TIME_PER_SUBMISSION = 12,
+	RATING_TIME_PER_SUBMISSION = 18,
 	RESULTS_TIME = 10,
 }
 
