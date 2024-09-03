@@ -36,6 +36,7 @@ function CompetitionHeader:gameStateUpdated(_, currentStateData)
 	end
 
 	if currentStateData.state == Constants.GAME_STATES.INTERMISSION then
+		HudGuiController.closeMenu("ResultsScreen")
 		PodiumManagerModule.togglePodium(false)
 		PodiumManagerModule.toggleCamera(false)
 
@@ -105,6 +106,12 @@ function CompetitionHeader:gameStateUpdated(_, currentStateData)
 		RampWalkModule.toggleCamera(false)
 		PlayerController.toggleControls(true)
 		if currentStateData.metaData then
+			Promise.delay(10):andThen(function()
+				HudGuiController.openMenu("ResultsScreen", {
+					resetScreen = true,
+					submissions = currentStateData.metaData.submissions,
+				})
+			end)
 			PodiumManagerModule.togglePodium(true)
 			PodiumManagerModule.toggleCamera(true)
 			self.updateThemeText(currentStateData.metaData.themeData.theme)
