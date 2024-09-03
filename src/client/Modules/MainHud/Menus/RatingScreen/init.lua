@@ -368,6 +368,8 @@ function RatingScreen:didUpdate()
 
 		local submissionData = submissions[self.currentIndex]
 
+		print(submissionData.player.Name .. ": " .. self.currentIndex)
+
 		if not submissionData then
 			self.updateSubmissionData()
 			return
