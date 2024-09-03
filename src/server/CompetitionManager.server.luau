@@ -23,6 +23,17 @@ local COMPETITION_DATA = {
 	RESULTS_TIME = 20,
 }
 
+local function selectPosingAnimation(player, data)
+	local selectedPosingAnimation = player:FindFirstChild("SelectedPosingAnimation")
+	if not selectedPosingAnimation then
+		selectedPosingAnimation = Instance.new("ObjectValue")
+		selectedPosingAnimation.Name = "SelectedPosingAnimation"
+		selectedPosingAnimation.Parent = player
+	end
+
+	selectedPosingAnimation.Value = data.emote
+end
+
 local function rateCreation(player, ratingData)
 	local index = TableUtils:findBy(roundSubmissions, function(outfitData)
 		return outfitData.player.UserId == ratingData.userId
@@ -44,6 +55,12 @@ local function rateCreation(player, ratingData)
 	outfitData.playerRatings[player.UserId] = ratingData.rating
 end
 
+local function onPlayerAdded(player)
+	local selectedPosingAnimation = Instance.new("ObjectValue")
+	selectedPosingAnimation.Name = "SelectedPosingAnimation"
+	selectedPosingAnimation.Parent = player
+end
+
 local function onPlayerRemoved(player)
 	local index = TableUtils:findBy(roundSubmissions, function(outfitData)
 		return outfitData.player.UserId == player.userId
@@ -59,6 +76,8 @@ end
 local function OnCompetitionEvent_RE(player, eventName, eventData)
 	if eventName == constants.EVENTS.COMPETITION_EVENTS.RATING then
 		rateCreation(player, eventData)
+	elseif eventName == constants.EVENTS.COMPETITION_EVENTS.SELECT_POSING_ANIMATION then
+		selectPosingAnimation(player, eventData)
 	end
 end
 
@@ -187,6 +206,7 @@ end
 
 RemoteEvents.Competition_RE.OnServerEvent:Connect(OnCompetitionEvent_RE)
 Players.PlayerRemoving:Connect(onPlayerRemoved)
+Players.PlayerAdded:Connect(onPlayerAdded)
 
 currentThemeData = {
 	theme = "Wild West",

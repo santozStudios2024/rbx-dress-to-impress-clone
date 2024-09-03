@@ -15,6 +15,7 @@ local Constants = {
 		},
 		COMPETITION_EVENTS = {
 			RATING = "Rating",
+			SELECT_POSING_ANIMATION = "SelectPosingAnimation",
 		},
 	},
 	TAGS = {

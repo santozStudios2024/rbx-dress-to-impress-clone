@@ -107,6 +107,12 @@ function RatingScreen:getEmotesList()
 							else
 								self.updateSelectedEmote(emote)
 							end
+							RemoteEvents.Competition_RE:FireServer(
+								Constants.EVENTS.COMPETITION_EVENTS.SELECT_POSING_ANIMATION,
+								{
+									emote = self.selectedEmote:getValue(),
+								}
+							)
 						end,
 					}),
 				})
@@ -395,11 +401,17 @@ function RatingScreen:didUpdate()
 				return
 			end
 
-			RampWalkModule.startWalk(submissionData, function()
-				local selectedEmote = self.selectedEmote:getValue()
+			RampWalkModule.startWalk(submissionData, function(player)
+				local selectedPosingAnimation = player:FindFirstChild("SelectedPosingAnimation")
 
-				return selectedEmote
+				if not selectedPosingAnimation then
+					return
+				end
+
+				return selectedPosingAnimation.Value
 			end):andThen(function(model)
+				RampWalkModule.tweenCamera(model, true)
+
 				task.wait(gameState.metaData.ratingTime)
 
 				if not model then
@@ -420,11 +432,17 @@ function RatingScreen:didUpdate()
 		return
 	end
 
-	RampWalkModule.startWalk(submissionData, function()
-		local selectedEmote = self.selectedEmote:getValue()
+	RampWalkModule.startWalk(submissionData, function(player)
+		local selectedPosingAnimation = player:FindFirstChild("SelectedPosingAnimation")
 
-		return selectedEmote
+		if not selectedPosingAnimation then
+			return
+		end
+
+		return selectedPosingAnimation.Value
 	end):andThen(function(model)
+		RampWalkModule.tweenCamera(model, true)
+
 		task.wait(gameState.metaData.ratingTime)
 
 		if not model then
