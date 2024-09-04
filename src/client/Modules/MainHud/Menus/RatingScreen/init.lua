@@ -8,7 +8,7 @@ local BaseTheme = require(ClientModules.BaseTheme)
 local ImageAssets = require(game.ReplicatedStorage.Shared.Assets.ImageAssets)
 local TweeningFrame = require(ClientModules.Components.TweeningFrame)
 local LocalGameStateManager = require(ClientModules.LocalGameStateManager)
-local Promise = require(game.ReplicatedStorage.Packages.Promise)
+-- local Promise = require(game.ReplicatedStorage.Packages.Promise)
 local RampWalkModule = require(ClientModules.RampWalkModule)
 local Constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local LayoutUtil = require(ClientModules.LayoutUtil)
@@ -25,6 +25,44 @@ local assets = game.ReplicatedStorage.Shared.Assets
 local catWalkEmotes = assets.CatWalkEmotes
 
 local RatingScreen = Roact.Component:extend("RatingScreen")
+
+function RatingScreen:showNextPlayer(gameState)
+	local nextIndex = self.currentIndex + 1
+
+	local submissionData = gameState.metaData.submissions[nextIndex]
+	if not submissionData then
+		warn("NO SUBMISSION DATA FOUND")
+		return
+	end
+
+	self.showNext = true
+
+	self.updateSubmissionData(submissionData)
+
+	RampWalkModule.startWalk(submissionData, function(player)
+		local selectedPosingAnimation = player:FindFirstChild("SelectedPosingAnimation")
+
+		if not selectedPosingAnimation then
+			return
+		end
+
+		return selectedPosingAnimation.Value
+	end):andThen(function(model)
+		RampWalkModule.tweenCamera(model, true)
+
+		task.wait(gameState.metaData.ratingTime)
+
+		if not model then
+			return
+		end
+
+		model:Destroy()
+	end)
+
+	self.currentIndex = nextIndex
+
+	self:setState({})
+end
 
 function RatingScreen:getEmotesList()
 	local guis = {}
@@ -182,7 +220,7 @@ function RatingScreen:getStars()
 end
 
 function RatingScreen:init()
-	self.currentIndex = 1
+	self.currentIndex = 0
 
 	self.submissionData, self.updateSubmissionData = Roact.createBinding()
 
@@ -190,6 +228,9 @@ function RatingScreen:init()
 
 	self.emotesList = Roact.createRef()
 	self.selectedEmote, self.updateSelectedEmote = Roact.createBinding()
+
+	self.perRatingTime = 0
+	self.showNext = true
 end
 
 function RatingScreen:render()
@@ -359,99 +400,31 @@ function RatingScreen:didUpdate()
 		self.emotesListLayout = LayoutUtil.new(emotesList)
 	end
 
-	Promise.new(function(resolve)
-		local gameState = LocalGameStateManager.getState()
+	local gameState = LocalGameStateManager.getState()
 
-		resolve(gameState)
-	end):andThen(function(gameState)
-		local submissions = gameState.metaData.submissions
+	if self.props.Input.resetScreen then
+		self.props.Input.resetScreen = false
+		self.perRatingTime = (gameState.metaData.endTime - os.time()) / #gameState.metaData.submissions
+		self.showNext = true
+		self.currentIndex = 0
+	end
 
-		local submissionData = submissions[self.currentIndex]
-
-		print(submissionData.player.Name .. ": " .. self.currentIndex)
-
-		if not submissionData then
-			self.updateSubmissionData()
-			return
-		end
-
-		self.updateSubmissionData(submissionData)
-	end)
-	if not self.props.Input.resetScreen then
+	if not self.showNext then
 		return
 	end
 
-	local gameState = LocalGameStateManager.getState()
-	self.currentIndex = 1
-	self.props.Input.resetScreen = false
+	if self.currentIndex == 0 then
+		print("SHOW FIRST PLAYER")
+		self:showNextPlayer(gameState)
+	end
+
+	self.showNext = false
 
 	self.timer = self:startTimer({
-		endTime = gameState.metaData.endTime,
-		updateFunction = function(timeLeft)
-			if timeLeft % gameState.metaData.ratingTime ~= 0 then
-				return
-			end
-
-			local nextIndex = #gameState.metaData.submissions - math.ceil(timeLeft / gameState.metaData.ratingTime) + 1
-
-			if nextIndex == self.currentIndex then
-				return
-			end
-
-			local submissionData = gameState.metaData.submissions[nextIndex]
-			if not submissionData then
-				return
-			end
-
-			RampWalkModule.startWalk(submissionData, function(player)
-				local selectedPosingAnimation = player:FindFirstChild("SelectedPosingAnimation")
-
-				if not selectedPosingAnimation then
-					return
-				end
-
-				return selectedPosingAnimation.Value
-			end):andThen(function(model)
-				RampWalkModule.tweenCamera(model, true)
-
-				task.wait(gameState.metaData.ratingTime)
-
-				if not model then
-					return
-				end
-
-				model:Destroy()
-			end)
-
-			self.currentIndex = nextIndex
-
-			self:setState({})
-		end,
-	})
-
-	local submissionData = gameState.metaData.submissions[self.currentIndex]
-	if not submissionData then
-		return
-	end
-
-	RampWalkModule.startWalk(submissionData, function(player)
-		local selectedPosingAnimation = player:FindFirstChild("SelectedPosingAnimation")
-
-		if not selectedPosingAnimation then
-			return
-		end
-
-		return selectedPosingAnimation.Value
-	end):andThen(function(model)
-		RampWalkModule.tweenCamera(model, true)
-
-		task.wait(gameState.metaData.ratingTime)
-
-		if not model then
-			return
-		end
-
-		model:Destroy()
+		endTime = os.time() + self.perRatingTime,
+	}):andThen(function()
+		print("Show Next player")
+		self:showNextPlayer(gameState)
 	end)
 end
 
