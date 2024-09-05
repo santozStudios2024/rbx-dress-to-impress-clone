@@ -43,11 +43,11 @@ local function rateCreation(player, ratingData)
 	-- 	return
 	-- end
 
-	if player.UserId == ratingData.userId then
+	if player == ratingData.ratedPlayer then
 		return
 	end
 
-	local outfitData = roundSubmissions[player]
+	local outfitData = roundSubmissions[ratingData.ratedPlayer]
 	if not outfitData then
 		return
 	end

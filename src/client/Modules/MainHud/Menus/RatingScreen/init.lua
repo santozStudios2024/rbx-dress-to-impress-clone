@@ -205,7 +205,7 @@ function RatingScreen:getStars()
 				end
 
 				RemoteEvents.Competition_RE:FireServer(Constants.EVENTS.COMPETITION_EVENTS.RATING, {
-					userId = outfitData.player.UserId,
+					ratedPlayer = outfitData.player,
 					rating = i,
 				})
 
