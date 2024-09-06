@@ -79,7 +79,12 @@ function RampWalkModule.startWalk(playerData, getPoseAnim)
 					end
 				end
 
-				return Promise.delay(5)
+				local poseWaitTime = posingPos:GetAttribute("PoseWaitTime")
+				if not poseWaitTime then
+					poseWaitTime = 5
+				end
+
+				return Promise.delay(poseWaitTime)
 			end)
 			:andThen(function()
 				humanoid:MoveTo(endPos.CFrame.Position)
