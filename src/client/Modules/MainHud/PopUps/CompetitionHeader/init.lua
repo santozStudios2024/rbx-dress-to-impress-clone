@@ -91,7 +91,7 @@ function CompetitionHeader:gameStateUpdated(_, currentStateData)
 				warn(tostring(err))
 			end)
 
-			RampWalkModule.toggleCamera(true)
+			-- RampWalkModule.toggleCamera(true)
 			PlayerController.toggleControls(false)
 
 			HudGuiController.openMenu("RatingScreen", {

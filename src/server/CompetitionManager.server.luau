@@ -17,26 +17,41 @@ local RemoteEvents = game.ReplicatedStorage.RemoteEvents
 
 -- Constants --
 local COMPETITION_DATA = {
-	INTERMISSION_TIME = 10,
-	ROUND_TIME = 10,
+	INTERMISSION_TIME = 30,
+	ROUND_TIME = 30,
 	RATING_TIME_PER_SUBMISSION = 18,
 	RESULTS_TIME = 20,
 }
 
+local function selectPosingAnimation(player, data)
+	local selectedPosingAnimation = player:FindFirstChild("SelectedPosingAnimation")
+	if not selectedPosingAnimation then
+		selectedPosingAnimation = Instance.new("ObjectValue")
+		selectedPosingAnimation.Name = "SelectedPosingAnimation"
+		selectedPosingAnimation.Parent = player
+	end
+
+	selectedPosingAnimation.Value = data.emote
+end
+
 local function rateCreation(player, ratingData)
-	local index = TableUtils:findBy(roundSubmissions, function(outfitData)
-		return outfitData.player.UserId == ratingData.userId
-	end)
+	-- local index = TableUtils:findBy(roundSubmissions, function(outfitData)
+	-- 	return outfitData.player.UserId == ratingData.userId
+	-- end)
 
-	if not index then
+	-- if not index then
+	-- 	return
+	-- end
+
+	if player == ratingData.ratedPlayer then
 		return
 	end
 
-	if player.UserId == ratingData.userId then
+	local outfitData = roundSubmissions[ratingData.ratedPlayer]
+	if not outfitData then
 		return
 	end
 
-	local outfitData = roundSubmissions[index]
 	if not outfitData.playerRatings then
 		outfitData.playerRatings = {}
 	end
@@ -44,21 +59,30 @@ local function rateCreation(player, ratingData)
 	outfitData.playerRatings[player.UserId] = ratingData.rating
 end
 
+local function onPlayerAdded(player)
+	local selectedPosingAnimation = Instance.new("ObjectValue")
+	selectedPosingAnimation.Name = "SelectedPosingAnimation"
+	selectedPosingAnimation.Parent = player
+end
+
 local function onPlayerRemoved(player)
-	local index = TableUtils:findBy(roundSubmissions, function(outfitData)
-		return outfitData.player.UserId == player.userId
-	end)
+	-- local index = TableUtils:findBy(roundSubmissions, function(outfitData)
+	-- 	return outfitData.player.UserId == player.userId
+	-- end)
 
-	if not index then
-		return
-	end
+	-- if not index then
+	-- 	return
+	-- end
 
-	table.remove(roundSubmissions, index)
+	-- table.remove(roundSubmissions, index)
+	roundSubmissions[player] = nil
 end
 
 local function OnCompetitionEvent_RE(player, eventName, eventData)
 	if eventName == constants.EVENTS.COMPETITION_EVENTS.RATING then
 		rateCreation(player, eventData)
+	elseif eventName == constants.EVENTS.COMPETITION_EVENTS.SELECT_POSING_ANIMATION then
+		selectPosingAnimation(player, eventData)
 	end
 end
 
@@ -84,37 +108,39 @@ function startRound()
 		:andThenCall(Promise.delay, COMPETITION_DATA.ROUND_TIME)
 		:andThen(function()
 			for _, player in ipairs(Players:GetPlayers()) do
-				table.insert(roundSubmissions, {
+				roundSubmissions[player] = {
 					player = player,
-				})
+				}
 			end
 
-			if #roundSubmissions <= 0 then
+			local submissions = TableUtils:getValues(roundSubmissions)
+			if #submissions <= 0 then
 				print("NO SUBMISSIONS!!!")
 
 				return Promise.reject(intermission)
 			end
 
-			for _, outfitData in pairs(roundSubmissions) do
+			for _, outfitData in pairs(submissions) do
 				outfitData.rating = 0
 			end
 
 			GameStateManager.setState({
 				state = constants.GAME_STATES.RATING,
 				metaData = {
-					endTime = os.time() + #roundSubmissions * COMPETITION_DATA.RATING_TIME_PER_SUBMISSION,
+					endTime = os.time()
+						+ #TableUtils:getValues(submissions) * COMPETITION_DATA.RATING_TIME_PER_SUBMISSION,
 					ratingTime = COMPETITION_DATA.RATING_TIME_PER_SUBMISSION,
-					submissions = roundSubmissions,
+					submissions = submissions,
 					themeData = currentThemeData,
 				},
 			})
 		end)
 		:andThen(function()
-			local delay = COMPETITION_DATA.RATING_TIME_PER_SUBMISSION * #roundSubmissions
+			local delay = COMPETITION_DATA.RATING_TIME_PER_SUBMISSION * #TableUtils:getValues(roundSubmissions)
 			return Promise.delay(delay)
 		end)
 		:andThen(function()
-			for _, outfitData in ipairs(roundSubmissions) do
+			for _, outfitData in pairs(roundSubmissions) do
 				outfitData.rating = 0
 
 				if not outfitData.playerRatings then
@@ -126,14 +152,15 @@ function startRound()
 				end
 			end
 
-			table.sort(roundSubmissions, function(a, b)
+			local submission = TableUtils:getValues(roundSubmissions)
+			table.sort(submission, function(a, b)
 				return a.rating > b.rating
 			end)
 
 			GameStateManager.setState({
 				state = constants.GAME_STATES.RESULTS,
 				metaData = {
-					submissions = roundSubmissions,
+					submissions = submission,
 					endTime = os.time() + COMPETITION_DATA.RESULTS_TIME,
 					themeData = currentThemeData,
 				},
@@ -187,12 +214,13 @@ end
 
 RemoteEvents.Competition_RE.OnServerEvent:Connect(OnCompetitionEvent_RE)
 Players.PlayerRemoving:Connect(onPlayerRemoved)
+Players.PlayerAdded:Connect(onPlayerAdded)
 
 currentThemeData = {
 	theme = "Wild West",
 }
 
-local nextState = startRound
+local nextState = intermission
 while true do
 	nextState = nextState():expect()
 	task.wait(1)

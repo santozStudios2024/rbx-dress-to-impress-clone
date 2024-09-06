@@ -87,7 +87,6 @@ function PlayerController.playAnimation(character, animation, animProps)
 		end
 	end
 
-	print("Animation Platyed")
 	animTrack:Play()
 end
 
