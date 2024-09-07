@@ -15,8 +15,10 @@
 			<ProtectedString name="Source"><![CDATA[-- humanoidAnimateR15Moods.lua
 
 local Character = script.Parent
-local Humanoid = Character:WaitForChild("Humanoid")
+print("WAITING FOR HUMANOID")
+local Humanoid = Character:WaitForChild("Humanoid", math.huge)
 local pose = "Standing"
+print("HUMANOID FOUND")
 
 local userNoUpdateOnLoopSuccess, userNoUpdateOnLoopValue = pcall(function() return UserSettings():IsUserFeatureEnabled("UserNoUpdateOnLoop") end)
 local userNoUpdateOnLoop = userNoUpdateOnLoopSuccess and userNoUpdateOnLoopValue

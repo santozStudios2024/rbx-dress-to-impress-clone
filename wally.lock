@@ -3,6 +3,11 @@
 registry = "test"
 
 [[package]]
+name = "bubshurb/viewportmodel"
+version = "1.0.0"
+dependencies = []
+
+[[package]]
 name = "evaera/promise"
 version = "3.2.1"
 dependencies = []
@@ -30,7 +35,7 @@ dependencies = []
 [[package]]
 name = "santozstudios/restaurentsim"
 version = "0.1.0"
-dependencies = [["Janitor", "howmanysmall/janitor@1.17.0"], ["Promise", "evaera/promise@3.2.1"], ["Signal", "sleitnick/signal@1.5.0"], ["flipper", "reselim/flipper@2.0.0"], ["roact", "roblox/roact@1.4.4"]]
+dependencies = [["Janitor", "howmanysmall/janitor@1.17.0"], ["Promise", "evaera/promise@3.2.1"], ["Signal", "sleitnick/signal@1.5.0"], ["flipper", "reselim/flipper@2.0.0"], ["roact", "roblox/roact@1.4.4"], ["viewportmodel", "bubshurb/viewportmodel@1.0.0"]]
 
 [[package]]
 name = "sleitnick/signal"
