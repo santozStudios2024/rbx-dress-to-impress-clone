@@ -7,6 +7,8 @@ local CameraManagerModule = require(ClientModule.CameraManagerModule)
 local PlayerController = require(game.ReplicatedStorage.Shared.Modules.PlayerController)
 local Janitor = require(game.ReplicatedStorage.Packages.Janitor)
 local Flipper = require(game.ReplicatedStorage.Packages.flipper)
+local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
+local TableUtils = Utils.TableUtils
 
 -- Variables --
 local assets = game.ReplicatedStorage.Shared.Assets
@@ -39,6 +41,13 @@ function RampWalkModule.startWalk(playerData, getPoseAnim)
 	end)
 
 	promise:andThen(function(model)
+		TableUtils:apply(model:GetDescendants(), function(part)
+			if not part:IsA("BasePart") then
+				return
+			end
+
+			part.Anchored = false
+		end)
 		local humanoid: Humanoid = model:FindFirstChildOfClass("Humanoid")
 		if humanoid then
 			humanoid.WalkSpeed = 5

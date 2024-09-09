@@ -5,6 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 
 -- Dependencies --
 local ClientModules = script.Parent.Parent
+local Constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local Roact = require(game.ReplicatedStorage.Packages.roact)
 local BaseTheme = require(ClientModules.BaseTheme)
 local VpModelModule = require(game.ReplicatedStorage.Packages.viewportmodel)
@@ -96,7 +97,6 @@ function AvatarVpComponent:updateVp()
 				task.wait()
 
 				local model = pm:Clone()
-				-- model.WorldPivot = model.PrimaryPart.CFrame
 				model.PrimaryPart = model.UpperTorso
 
 				-- Add Emote Player --
@@ -135,95 +135,6 @@ function AvatarVpComponent:updateVp()
 				vp.WorldModel:ClearAllChildren()
 
 				model.Parent = vp.WorldModel
-
-				-- local hum = model:WaitForChild("Humanoid", math.huge)
-				-- local hd: HumanoidDescription = hum:GetAppliedDescription()
-				-- hd.Parent = script
-
-				-- local appliedAcc = hd:GetAccessories(true)
-				-- local finalAcc = {}
-				-- for _, acData in ipairs(appliedAcc) do
-				-- 	if acData.AccessoryType == Enum.AccessoryType.Hair then
-				-- 		table.insert(finalAcc, acData)
-				-- 	end
-				-- end
-				-- hd:SetAccessories(finalAcc, true)
-
-				-- task.wait()
-
-				-- local applyDes = false
-				-- for _, info in ipairs(self.props.productsInfo) do
-				-- 	if
-				-- 		info.AssetTypeId == 24
-				-- 		or info.AssetTypeId == 61
-				-- 		or (info.AssetTypeId >= 48 and info.AssetTypeId <= 56)
-				-- 	then
-				-- 		local anim = Instance.new("Animation")
-
-				-- 		anim.AnimationId = "rbxassetid://" .. info.AssetId
-
-				-- 		local isSuccess, animTrack: AnimationTrack = pcall(function()
-				-- 			return hum.Animator:LoadAnimation(anim)
-				-- 		end)
-				-- 		if not isSuccess then
-				-- 			continue
-				-- 		end
-
-				-- 		animTrack.Looped = true
-				-- 		animTrack.Priority = Enum.AnimationPriority.Action
-
-				-- 		animTrack:Play()
-
-				-- 		continue
-				-- 	end
-
-				-- 	local isLayered = info.AssetTypeId >= 64
-				-- 	local AccessoryType = ACCESSORY_INDEX[info.AssetTypeId]
-
-				-- 	if isLayered then
-				-- 		local acc = hd:GetAccessories(true)
-
-				-- 		local accData = {
-				-- 			Order = #acc,
-				-- 			AccessoryType = AccessoryType,
-				-- 			AssetId = info.AssetId,
-				-- 			isLayered = false,
-				-- 		}
-				-- 		table.insert(acc, accData)
-
-				-- 		hd:SetAccessories(acc, true)
-
-				-- 		applyDes = true
-				-- 		continue
-				-- 	end
-
-				-- 	if not AccessoryType then
-				-- 		warn("INVALID ACCESSORY TYPE!!!")
-				-- 		continue
-				-- 	end
-
-				-- 	local success, _ = pcall(function()
-				-- 		if hd[AccessoryType] and info.AssetTypeId ~= 11 and info.AssetTypeId ~= 12 then
-				-- 			hd[AccessoryType] = hd[AccessoryType] .. "," .. info.AssetId
-				-- 		else
-				-- 			hd[AccessoryType] = info.AssetId
-				-- 		end
-				-- 	end)
-				-- 	if not success then
-				-- 		print(AccessoryType .. " causing error")
-				-- 		continue
-				-- 	end
-				-- 	-- hd[AccessoryType] = info.AssetId
-				-- 	applyDes = true
-				-- end
-
-				-- if applyDes then
-				-- 	hum:ApplyDescriptionReset(hd)
-				-- end
-
-				-- task.wait()
-
-				-- hd:Destroy()
 
 				local vpfModel = VpModelModule.new(vp, camera)
 
@@ -371,6 +282,23 @@ function AvatarVpComponent:render()
 					self.mousePressed = true
 					self.manullyRotating = true
 				end,
+				Visible = self.props.colorBind.color:map(function(selectedColor)
+					if not self.dummyModel then
+						return
+					end
+
+					local bodyColors: BodyColors = self.dummyModel:FindFirstChildOfClass("BodyColors")
+
+					if not bodyColors then
+						return
+					end
+
+					for _, prop in pairs(Constants.BODY_COLORS) do
+						bodyColors[prop] = selectedColor
+					end
+
+					return true
+				end),
 			}, {
 				Loading = createElement("TextLabel", {
 					AnchorPoint = theme.ap.center,

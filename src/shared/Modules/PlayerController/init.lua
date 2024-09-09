@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 -- Dependencies --
+local Constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local TableUtils = Utils.TableUtils
 
@@ -63,6 +64,15 @@ function PlayerController.resetDescription(player)
 
 		child:Destroy()
 	end)
+
+	local bodyColors = character:FindFirstChildOfClass("BodyColors")
+	if not bodyColors then
+		return
+	end
+
+	for _, prop in pairs(Constants.BODY_COLORS) do
+		bodyColors[prop] = Color3.fromHex("#7F7F7F")
+	end
 end
 
 function PlayerController.playAnimation(character, animation, animProps)

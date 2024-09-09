@@ -52,7 +52,7 @@ function ColorPicker:getColorValueTextBox(props)
 			BackgroundTransparency = 1,
 			LayoutOrder = 2,
 			[Roact.Ref] = textBoxRef,
-			Text = self.selectedColor:map(props.mappingFunction),
+			Text = self.props.colorBind.color:map(props.mappingFunction),
 			TextScaled = true,
 			ClearTextOnFocus = false,
 			FontFace = props.theme.fonts.bold,
@@ -97,8 +97,6 @@ function ColorPicker:init()
 
 	self.selectingColor = false
 	self.selectingValue = false
-
-	self.selectedColor, self.updateSelectedColor = Roact.createBinding(Color3.new(1, 1, 1))
 
 	self.offset = 0
 	self:calculateIgnoreGuiOffset()
@@ -167,7 +165,7 @@ function ColorPicker:render()
 							}),
 							Cursor = createElement("Frame", {
 								AnchorPoint = theme.ap.center,
-								Position = self.selectedColor:map(function(selectedColor: Color3)
+								Position = self.props.colorBind.color:map(function(selectedColor: Color3)
 									local h, s, _ = selectedColor:ToHSV()
 
 									return UDim2.fromScale(1 - h, 1 - s)
@@ -182,7 +180,7 @@ function ColorPicker:render()
 									CornerRadius = UDim.new(1),
 								}),
 								UIStroke = createElement("UIStroke", {
-									Thickness = UIRatioHandler.CalculateStrokeThickness(30),
+									Thickness = UIRatioHandler.CalculateStrokeThickness(6),
 								}),
 							}),
 						}),
@@ -203,7 +201,7 @@ function ColorPicker:render()
 									return
 								end
 
-								local selectedColor = self.selectedColor:getValue()
+								local selectedColor = self.props.colorBind.color:getValue()
 								local _, _, v = selectedColor:ToHSV()
 								local colorFrmae = self.colorsFrame:getValue()
 
@@ -223,7 +221,7 @@ function ColorPicker:render()
 								local hue = 1 - math.clamp((x - minX) / (maxX - minX), 0, 1)
 								local sat = 1 - math.clamp((y - minY) / (maxY - minY), 0, 1)
 
-								self.updateSelectedColor(Color3.fromHSV(hue, sat, v))
+								self.props.colorBind.update(Color3.fromHSV(hue, sat, v))
 							end,
 						}),
 					}),
@@ -235,7 +233,7 @@ function ColorPicker:render()
 						[Roact.Ref] = self.valueFrame,
 					}, {
 						UIGradient = createElement("UIGradient", {
-							Color = self.selectedColor:map(function(selectedColor: Color3)
+							Color = self.props.colorBind.color:map(function(selectedColor: Color3)
 								local h, s, _ = selectedColor:ToHSV()
 
 								return ColorSequence.new({
@@ -247,7 +245,7 @@ function ColorPicker:render()
 						}),
 						Cursor = createElement("Frame", {
 							AnchorPoint = theme.ap.center,
-							Position = self.selectedColor:map(function(selectedColor: Color3)
+							Position = self.props.colorBind.color:map(function(selectedColor: Color3)
 								local _, _, v = selectedColor:ToHSV()
 
 								return UDim2.fromScale(0.5, 1 - v)
@@ -262,7 +260,7 @@ function ColorPicker:render()
 								CornerRadius = UDim.new(1),
 							}),
 							UIStroke = createElement("UIStroke", {
-								Thickness = UIRatioHandler.CalculateStrokeThickness(30),
+								Thickness = UIRatioHandler.CalculateStrokeThickness(6),
 							}),
 						}),
 						Button = createElement("ImageButton", {
@@ -282,7 +280,7 @@ function ColorPicker:render()
 									return
 								end
 
-								local selectedColor: Color3 = self.selectedColor:getValue()
+								local selectedColor: Color3 = self.props.colorBind.color:getValue()
 								local h, s, _ = selectedColor:ToHSV()
 
 								local valueFrame = self.valueFrame:getValue()
@@ -299,7 +297,7 @@ function ColorPicker:render()
 
 								local value = 1 - math.clamp((y - minY) / (maxY - minY), 0, 1)
 
-								self.updateSelectedColor(Color3.fromHSV(h, s, value))
+								self.props.colorBind.update(Color3.fromHSV(h, s, value))
 							end,
 						}),
 					}),
@@ -340,7 +338,7 @@ function ColorPicker:render()
 								return r
 							end,
 							updateFunction = function(value)
-								local selectedColor = self.selectedColor:getValue()
+								local selectedColor = self.props.colorBind.color:getValue()
 								if not selectedColor then
 									return
 								end
@@ -350,7 +348,7 @@ function ColorPicker:render()
 								local g = selectedColor.G * 255
 								local b = selectedColor.B * 255
 
-								self.updateSelectedColor(Color3.fromRGB(r, g, b))
+								self.props.colorBind.update(Color3.fromRGB(r, g, b))
 							end,
 						}),
 						G = self:getColorValueTextBox({
@@ -364,7 +362,7 @@ function ColorPicker:render()
 								return g
 							end,
 							updateFunction = function(value)
-								local selectedColor = self.selectedColor:getValue()
+								local selectedColor = self.props.colorBind.color:getValue()
 								if not selectedColor then
 									return
 								end
@@ -374,7 +372,7 @@ function ColorPicker:render()
 								local r = selectedColor.R * 255
 								local b = selectedColor.B * 255
 
-								self.updateSelectedColor(Color3.fromRGB(r, g, b))
+								self.props.colorBind.update(Color3.fromRGB(r, g, b))
 							end,
 						}),
 						B = self:getColorValueTextBox({
@@ -388,7 +386,7 @@ function ColorPicker:render()
 								return b
 							end,
 							updateFunction = function(value)
-								local selectedColor = self.selectedColor:getValue()
+								local selectedColor = self.props.colorBind.color:getValue()
 								if not selectedColor then
 									return
 								end
@@ -398,7 +396,7 @@ function ColorPicker:render()
 								local r = selectedColor.R * 255
 								local g = selectedColor.B * 255
 
-								self.updateSelectedColor(Color3.fromRGB(r, g, b))
+								self.props.colorBind.update(Color3.fromRGB(r, g, b))
 							end,
 						}),
 					}),
@@ -430,16 +428,16 @@ function ColorPicker:render()
 								end)
 
 								if not success then
-									self.updateSelectedColor(self.selectedColor:getValue())
+									self.props.colorBind.update(self.props.colorBind.color:getValue())
 									return
 								end
 
-								self.updateSelectedColor(color)
+								self.props.colorBind.update(color)
 							end,
 						}),
 						Color = createElement("Frame", {
 							Size = UDim2.fromScale(0.48, 1),
-							BackgroundColor3 = self.selectedColor,
+							BackgroundColor3 = self.props.colorBind.color,
 							LayoutOrder = 2,
 						}),
 					}),
