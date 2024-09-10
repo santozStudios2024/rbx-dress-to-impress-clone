@@ -24,12 +24,17 @@ local Constants = {
 		BODY_PAD = "BodyPad",
 	},
 	BODY_COLORS = {
-		HEAD_COLOR3 = "HeadColor3",
-		TORSO_COLOR3 = "TorsoColor3",
-		LEFT_ARM_COLOR3 = "LeftArmColor3",
-		RIGHT_ARM_COLOR3 = "RightArmColor3",
-		LEFT_LEG_COLOR3 = "LeftLegColor3",
-		RIGHT_LEG_COLOR3 = "RightLegColor3",
+		HEAD_COLOR3 = "HeadColor",
+		TORSO_COLOR3 = "TorsoColor",
+		LEFT_ARM_COLOR3 = "LeftArmColor",
+		RIGHT_ARM_COLOR3 = "RightArmColor",
+		LEFT_LEG_COLOR3 = "LeftLegColor",
+		RIGHT_LEG_COLOR3 = "RightLegColor",
+	},
+	BODY_CUSTOMIZATIONS = {
+		COLOR = "Color",
+		SCALE = "Scale",
+		FACES = "Faces",
 	},
 }
 

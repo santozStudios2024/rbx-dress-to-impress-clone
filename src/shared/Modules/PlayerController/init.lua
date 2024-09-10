@@ -65,14 +65,23 @@ function PlayerController.resetDescription(player)
 		child:Destroy()
 	end)
 
-	local bodyColors = character:FindFirstChildOfClass("BodyColors")
-	if not bodyColors then
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid then
 		return
 	end
 
+	local description: HumanoidDescription = humanoid:GetAppliedDescription()
+
 	for _, prop in pairs(Constants.BODY_COLORS) do
-		bodyColors[prop] = Color3.fromHex("#7F7F7F")
+		description[prop] = Color3.fromHex("#7F7F7F")
 	end
+
+	description.HeightScale = 1
+	description.WidthScale = 1
+	description.DepthScale = 1
+	description.HeadScale = 1
+
+	humanoid:ApplyDescription(description)
 end
 
 function PlayerController.playAnimation(character, animation, animProps)

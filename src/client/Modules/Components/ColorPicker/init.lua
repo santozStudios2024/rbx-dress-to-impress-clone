@@ -91,6 +91,51 @@ function ColorPicker:calculateIgnoreGuiOffset()
 	end)
 end
 
+function ColorPicker:updateSelectedColor(x, y)
+	local selectedColor = self.props.colorBind.color:getValue()
+	local _, _, v = selectedColor:ToHSV()
+	local colorFrmae = self.colorsFrame:getValue()
+
+	if not colorFrmae then
+		return
+	end
+
+	local absPos = colorFrmae.AbsolutePosition
+	local absSize = colorFrmae.AbsoluteSize
+
+	local maxX = absPos.X + absSize.X
+	local maxY = absPos.Y + absSize.Y + self.offset
+
+	local minY = absPos.Y + self.offset
+	local minX = absPos.X
+
+	local hue = 1 - math.clamp((x - minX) / (maxX - minX), 0, 1)
+	local sat = 1 - math.clamp((y - minY) / (maxY - minY), 0, 1)
+
+	self.props.colorBind.update(Color3.fromHSV(hue, sat, v))
+end
+
+function ColorPicker:updateSelectedValue(y)
+	local selectedColor: Color3 = self.props.colorBind.color:getValue()
+	local h, s, _ = selectedColor:ToHSV()
+
+	local valueFrame = self.valueFrame:getValue()
+
+	if not valueFrame then
+		return
+	end
+
+	local absPos = valueFrame.AbsolutePosition
+	local absSize = valueFrame.AbsoluteSize
+
+	local maxY = absPos.Y + absSize.Y + self.offset
+	local minY = absPos.Y + self.offset
+
+	local value = 1 - math.clamp((y - minY) / (maxY - minY), 0, 1)
+
+	self.props.colorBind.update(Color3.fromHSV(h, s, value))
+end
+
 function ColorPicker:init()
 	self.colorsFrame = Roact.createRef()
 	self.valueFrame = Roact.createRef()
@@ -190,8 +235,9 @@ function ColorPicker:render()
 							Size = theme.size,
 							BackgroundTransparency = 1,
 							ZIndex = 10,
-							[roactEvents.MouseButton1Down] = function()
+							[roactEvents.MouseButton1Down] = function(_, x, y)
 								self.selectingColor = true
+								self:updateSelectedColor(x, y)
 							end,
 							[roactEvents.MouseButton1Up] = function()
 								self.selectingColor = false
@@ -201,27 +247,7 @@ function ColorPicker:render()
 									return
 								end
 
-								local selectedColor = self.props.colorBind.color:getValue()
-								local _, _, v = selectedColor:ToHSV()
-								local colorFrmae = self.colorsFrame:getValue()
-
-								if not colorFrmae then
-									return
-								end
-
-								local absPos = colorFrmae.AbsolutePosition
-								local absSize = colorFrmae.AbsoluteSize
-
-								local maxX = absPos.X + absSize.X
-								local maxY = absPos.Y + absSize.Y + self.offset
-
-								local minY = absPos.Y + self.offset
-								local minX = absPos.X
-
-								local hue = 1 - math.clamp((x - minX) / (maxX - minX), 0, 1)
-								local sat = 1 - math.clamp((y - minY) / (maxY - minY), 0, 1)
-
-								self.props.colorBind.update(Color3.fromHSV(hue, sat, v))
+								self:updateSelectedColor(x, y)
 							end,
 						}),
 					}),
@@ -269,8 +295,9 @@ function ColorPicker:render()
 							Size = theme.size,
 							BackgroundTransparency = 1,
 							ZIndex = 10,
-							[roactEvents.MouseButton1Down] = function()
+							[roactEvents.MouseButton1Down] = function(_, _, y)
 								self.selectingValue = true
+								self:updateSelectedValue(y)
 							end,
 							[roactEvents.MouseButton1Up] = function()
 								self.selectingValue = false
@@ -280,24 +307,7 @@ function ColorPicker:render()
 									return
 								end
 
-								local selectedColor: Color3 = self.props.colorBind.color:getValue()
-								local h, s, _ = selectedColor:ToHSV()
-
-								local valueFrame = self.valueFrame:getValue()
-
-								if not valueFrame then
-									return
-								end
-
-								local absPos = valueFrame.AbsolutePosition
-								local absSize = valueFrame.AbsoluteSize
-
-								local maxY = absPos.Y + absSize.Y + self.offset
-								local minY = absPos.Y + self.offset
-
-								local value = 1 - math.clamp((y - minY) / (maxY - minY), 0, 1)
-
-								self.props.colorBind.update(Color3.fromHSV(h, s, value))
+								self:updateSelectedValue(y)
 							end,
 						}),
 					}),

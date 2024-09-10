@@ -43,7 +43,6 @@ function BodyPadController.new(bodypad)
 end
 
 function BodyPadController:onPlayerEntered()
-	print("Player Entered")
 	if not self.guiHandle then
 		return
 	end
@@ -82,7 +81,6 @@ function BodyPadController:onPlayerEntered()
 end
 
 function BodyPadController:onPlayerExited()
-	print("Player Exited")
 	if not self.guiHandle then
 		return
 	end
@@ -119,11 +117,12 @@ function BodyPadController:initGui()
 	local bbGui = Instance.new("BillboardGui")
 	bbGui.ResetOnSpawn = false
 	bbGui.LightInfluence = 0
-	bbGui.Size = UDim2.fromScale(5, 5)
+	bbGui.Size = UDim2.fromScale(8, 6)
 	bbGui.AlwaysOnTop = true
 	bbGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	bbGui.Parent = playerGui
 	bbGui.Adornee = self.bodypad.Pad
+	bbGui.Active = true
 
 	local bg = Instance.new("Frame")
 	bg.Parent = bbGui

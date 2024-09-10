@@ -121,32 +121,47 @@ function AvatarVpComponent:updateVp()
 					return
 				end
 
-				local camera = vp.CurrentCamera
-				if not camera then
-					camera = Instance.new("Camera")
-					camera.Parent = vp
-					camera.CameraType = Enum.CameraType.Scriptable
-					camera.DiagonalFieldOfView = 20
-					camera.FieldOfView = 20
+				self.camera = vp.CurrentCamera
+				if not self.camera then
+					self.camera = Instance.new("Camera")
+					self.camera.Parent = vp
+					self.camera.CameraType = Enum.CameraType.Scriptable
+					self.camera.DiagonalFieldOfView = 20
+					self.camera.FieldOfView = 20
 				end
 
 				-- camera.CFrame = CFrame.new(1000, 1000, 1000)
-				vp.CurrentCamera = camera
+				vp.CurrentCamera = self.camera
 				vp.WorldModel:ClearAllChildren()
 
 				model.Parent = vp.WorldModel
 
-				local vpfModel = VpModelModule.new(vp, camera)
+				self.vpfModel = VpModelModule.new(vp, self.camera)
 
-				vpfModel:SetModel(model)
+				self.vpfModel:SetModel(model)
 
 				local theta = math.rad(180)
 				local orientation = CFrame.fromEulerAnglesYXZ(math.rad(0), theta, 0)
-				local distance = vpfModel:GetFitDistance(model:GetPivot().Position)
+				local distance = self.vpfModel:GetFitDistance(model:GetPivot().Position)
 
-				camera.CFrame = model:GetPivot() * CFrame.new(0, 0, -distance) * orientation
+				self.camera.CFrame = model:GetPivot() * CFrame.new(0, 0, -distance) * orientation
 
 				resolve()
+
+				local humanoid = self.dummyModel:FindFirstChildOfClass("Humanoid")
+				if not humanoid then
+					return
+				end
+
+				local description: HumanoidDescription = humanoid:GetAppliedDescription()
+
+				self.props.scaleBind.update({
+					BodyHeightScale = description.HeightScale,
+					BodyWidthScale = description.WidthScale,
+					BodyDepthScale = description.DepthScale,
+					HeadScale = description.HeadScale,
+				})
+				self.props.colorBind.update(description.HeadColor)
 			end)
 			:catch(function(err)
 				reject(err)
@@ -282,23 +297,57 @@ function AvatarVpComponent:render()
 					self.mousePressed = true
 					self.manullyRotating = true
 				end,
-				Visible = self.props.colorBind.color:map(function(selectedColor)
-					if not self.dummyModel then
-						return
-					end
+				Visible = Roact.joinBindings({ self.props.colorBind.color, self.props.scaleBind.scale })
+					:map(function(values)
+						if not self.dummyModel then
+							return
+						end
 
-					local bodyColors: BodyColors = self.dummyModel:FindFirstChildOfClass("BodyColors")
+						local selectedColor = values[1]
+						local scaling = values[2]
 
-					if not bodyColors then
-						return
-					end
+						-- print(tostring(selectedColor:ToHex()))
+						-- local bodyColors: BodyColors = self.dummyModel:FindFirstChildOfClass("BodyColors")
 
-					for _, prop in pairs(Constants.BODY_COLORS) do
-						bodyColors[prop] = selectedColor
-					end
+						-- if bodyColors then
+						-- 	for _, prop in pairs(Constants.BODY_COLORS) do
+						-- 		bodyColors[prop] = selectedColor
+						-- 	end
+						-- end
 
-					return true
-				end),
+						local humanoid: Humanoid = self.dummyModel:FindFirstChildOfClass("Humanoid")
+
+						if humanoid then
+							local description = humanoid:GetAppliedDescription()
+
+							for _, prop in pairs(Constants.BODY_COLORS) do
+								description[prop] = selectedColor
+							end
+							-- print(scaling.BodyHeightScale)
+							description.HeightScale = scaling.BodyHeightScale -- Scale the height
+							description.WidthScale = scaling.BodyWidthScale -- Scale the width
+							description.DepthScale = scaling.BodyDepthScale -- Scale the depth
+							description.HeadScale = scaling.HeadScale -- Scale the head size
+							-- description.ProportionScale = 0.9 -- Make the character more child-like
+							-- description.BodyTypeScale = 0.5 -- More blocky appearance
+
+							humanoid:ApplyDescription(description)
+						end
+
+						Promise.new(function()
+							self.vpfModel = VpModelModule.new(self.vpRef:getValue(), self.camera)
+
+							self.vpfModel:SetModel(self.dummyModel)
+
+							local theta = math.rad(180)
+							local orientation = CFrame.fromEulerAnglesYXZ(math.rad(0), theta, 0)
+							local distance = self.vpfModel:GetFitDistance(self.dummyModel:GetPivot().Position)
+
+							self.camera.CFrame = self.dummyModel:GetPivot() * CFrame.new(0, 0, -distance) * orientation
+						end):catch(warn)
+
+						return true
+					end),
 			}, {
 				Loading = createElement("TextLabel", {
 					AnchorPoint = theme.ap.center,

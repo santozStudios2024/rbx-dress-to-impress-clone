@@ -10,6 +10,7 @@ local BaseTheme = require(ClientModules.BaseTheme)
 local TweeningFrame = require(ClientModules.Components.TweeningFrame)
 local ColorPicker = require(ClientModules.Components.ColorPicker)
 local AvatarVpComponent = require(ClientModules.Components.AvatarVpComponent)
+local BodyScalingGui = require(script.BodyScalingGui)
 local Flipper = require(game.ReplicatedStorage.Packages.flipper)
 local HudGuiController = require(ClientModules.HudGuiController)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
@@ -27,6 +28,7 @@ function BodyCustomizationScreen:saveCustomization()
 	print("Save Body Customization")
 	RemoteEvents.AccessoryManager_RE:FireServer(Constants.EVENTS.ACCESSORY_MANAGER_EVENTS.TOGGLE_BODY_COLOR, {
 		bodyColor = self.selectedColor:getValue(),
+		bodyScale = self.bodyScale:getValue(),
 	})
 end
 
@@ -44,8 +46,38 @@ function BodyCustomizationScreen:updateVisibility()
 	end
 end
 
+function BodyCustomizationScreen:getCustomization()
+	if not self.props.Input.customization then
+		return
+	end
+
+	if self.props.Input.customization == Constants.BODY_CUSTOMIZATIONS.COLOR then
+		return createElement(ColorPicker, {
+			colorBind = {
+				color = self.selectedColor,
+				update = self.updateSelectedColor,
+			},
+		})
+	elseif self.props.Input.customization == Constants.BODY_CUSTOMIZATIONS.SCALE then
+		return createElement(BodyScalingGui, {
+			scaleBind = {
+				scale = self.bodyScale,
+				update = self.updateBodyScale,
+			},
+		})
+	end
+end
+
 function BodyCustomizationScreen:init()
 	self.selectedColor, self.updateSelectedColor = Roact.createBinding(Color3.new(1, 1, 1))
+
+	self.bodyScale, self.updateBodyScale = Roact.createBinding({
+		BodyHeightScale = 1,
+		BodyWidthScale = 1,
+		BodyDepthScale = 1,
+		HeadScale = 1,
+	})
+
 	self.blur, self.updateBlur = Roact.createBinding(0)
 	self.blurMotor = Flipper.SingleMotor.new(0)
 	self.blurMotor:onStep(self.updateBlur)
@@ -66,7 +98,7 @@ function BodyCustomizationScreen:render()
 						Size = self.blur,
 					}),
 				}),
-				ColorPickerBg = createElement("Frame", {
+				CustomizationBg = createElement("Frame", {
 					AnchorPoint = theme.ap.right_center,
 					Position = UDim2.fromScale(0.9, 0.5),
 					Size = UDim2.fromScale(0.4, 0.55),
@@ -75,12 +107,7 @@ function BodyCustomizationScreen:render()
 					UICorner = createElement("UICorner", {
 						CornerRadius = UDim.new(0.05),
 					}),
-					ColorPicker = createElement(ColorPicker, {
-						colorBind = {
-							color = self.selectedColor,
-							update = self.updateSelectedColor,
-						},
-					}),
+					Customization = self:getCustomization(),
 				}),
 				PlayerAvatarBg = createElement("Frame", {
 					AnchorPoint = theme.ap.left_center,
@@ -104,6 +131,10 @@ function BodyCustomizationScreen:render()
 						colorBind = {
 							color = self.selectedColor,
 							update = self.updateSelectedColor,
+						},
+						scaleBind = {
+							scale = self.bodyScale,
+							update = self.updateBodyScale,
 						},
 					}),
 				}),
