@@ -99,6 +99,11 @@ function AvatarVpComponent:updateVp()
 				local model = pm:Clone()
 				model.PrimaryPart = model.UpperTorso
 
+				if self.props.focusPart and model:FindFirstChild(self.props.focusPart) then
+					print("Setting focus part")
+					model.PrimaryPart = model:FindFirstChild(self.props.focusPart)
+				end
+
 				-- Add Emote Player --
 				if model:FindFirstChild("Animate") then
 					model:FindFirstChild("Animate"):Destroy()
@@ -144,7 +149,12 @@ function AvatarVpComponent:updateVp()
 				local orientation = CFrame.fromEulerAnglesYXZ(math.rad(0), theta, 0)
 				local distance = self.vpfModel:GetFitDistance(model:GetPivot().Position)
 
-				self.camera.CFrame = model:GetPivot() * CFrame.new(0, 0, -distance) * orientation
+				local finalCF = model:GetPivot() * CFrame.new(0, 0, -distance) * orientation
+				if self.props.offset then
+					print("Setting Offset")
+					finalCF = finalCF * self.props.offset
+				end
+				self.camera.CFrame = finalCF
 
 				resolve()
 
@@ -154,6 +164,8 @@ function AvatarVpComponent:updateVp()
 				end
 
 				local description: HumanoidDescription = humanoid:GetAppliedDescription()
+
+				self.props.faceBind.update(description.Face)
 
 				self.props.scaleBind.update({
 					BodyHeightScale = description.HeightScale,
@@ -297,57 +309,59 @@ function AvatarVpComponent:render()
 					self.mousePressed = true
 					self.manullyRotating = true
 				end,
-				Visible = Roact.joinBindings({ self.props.colorBind.color, self.props.scaleBind.scale })
-					:map(function(values)
-						if not self.dummyModel then
-							return
+				Visible = Roact.joinBindings({
+					self.props.colorBind.color,
+					self.props.scaleBind.scale,
+					self.props.faceBind.face,
+				}):map(function(values)
+					if not self.dummyModel then
+						return
+					end
+
+					local selectedColor = values[1]
+					local scaling = values[2]
+					local selectedFace = values[3]
+
+					local humanoid = self.dummyModel:FindFirstChildOfClass("Humanoid")
+
+					if humanoid then
+						local description: HumanoidDescription = humanoid:GetAppliedDescription()
+
+						for _, prop in pairs(Constants.BODY_COLORS) do
+							description[prop] = selectedColor
 						end
 
-						local selectedColor = values[1]
-						local scaling = values[2]
+						description.HeightScale = scaling.BodyHeightScale
+						description.WidthScale = scaling.BodyWidthScale
+						description.DepthScale = scaling.BodyDepthScale
+						description.HeadScale = scaling.HeadScale
 
-						-- print(tostring(selectedColor:ToHex()))
-						-- local bodyColors: BodyColors = self.dummyModel:FindFirstChildOfClass("BodyColors")
+						-- description.ProportionScale = 0.9
+						-- description.BodyTypeScale = 0.5
+						description.Face = selectedFace or 0
 
-						-- if bodyColors then
-						-- 	for _, prop in pairs(Constants.BODY_COLORS) do
-						-- 		bodyColors[prop] = selectedColor
-						-- 	end
-						-- end
+						humanoid:ApplyDescription(description)
+					end
 
-						local humanoid: Humanoid = self.dummyModel:FindFirstChildOfClass("Humanoid")
+					Promise.new(function()
+						self.vpfModel = VpModelModule.new(self.vpRef:getValue(), self.camera)
 
-						if humanoid then
-							local description = humanoid:GetAppliedDescription()
+						self.vpfModel:SetModel(self.dummyModel)
 
-							for _, prop in pairs(Constants.BODY_COLORS) do
-								description[prop] = selectedColor
-							end
-							-- print(scaling.BodyHeightScale)
-							description.HeightScale = scaling.BodyHeightScale -- Scale the height
-							description.WidthScale = scaling.BodyWidthScale -- Scale the width
-							description.DepthScale = scaling.BodyDepthScale -- Scale the depth
-							description.HeadScale = scaling.HeadScale -- Scale the head size
-							-- description.ProportionScale = 0.9 -- Make the character more child-like
-							-- description.BodyTypeScale = 0.5 -- More blocky appearance
+						local theta = math.rad(180)
+						local orientation = CFrame.fromEulerAnglesYXZ(math.rad(0), theta, 0)
+						local distance = self.vpfModel:GetFitDistance(self.dummyModel:GetPivot().Position)
 
-							humanoid:ApplyDescription(description)
+						local finalCF = self.dummyModel:GetPivot() * CFrame.new(0, 0, -distance) * orientation
+						if self.props.offset then
+							print("Setting Offset")
+							finalCF = finalCF * self.props.offset
 						end
+						self.camera.CFrame = finalCF
+					end):catch(warn)
 
-						Promise.new(function()
-							self.vpfModel = VpModelModule.new(self.vpRef:getValue(), self.camera)
-
-							self.vpfModel:SetModel(self.dummyModel)
-
-							local theta = math.rad(180)
-							local orientation = CFrame.fromEulerAnglesYXZ(math.rad(0), theta, 0)
-							local distance = self.vpfModel:GetFitDistance(self.dummyModel:GetPivot().Position)
-
-							self.camera.CFrame = self.dummyModel:GetPivot() * CFrame.new(0, 0, -distance) * orientation
-						end):catch(warn)
-
-						return true
-					end),
+					return true
+				end),
 			}, {
 				Loading = createElement("TextLabel", {
 					AnchorPoint = theme.ap.center,

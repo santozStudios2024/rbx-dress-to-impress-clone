@@ -81,6 +81,8 @@ function PlayerController.resetDescription(player)
 	description.DepthScale = 1
 	description.HeadScale = 1
 
+	description.Face = 0
+
 	humanoid:ApplyDescription(description)
 end
 

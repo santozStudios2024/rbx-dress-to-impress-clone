@@ -11,6 +11,7 @@ local TweeningFrame = require(ClientModules.Components.TweeningFrame)
 local ColorPicker = require(ClientModules.Components.ColorPicker)
 local AvatarVpComponent = require(ClientModules.Components.AvatarVpComponent)
 local BodyScalingGui = require(script.BodyScalingGui)
+local FacesGui = require(script.FacesGui)
 local Flipper = require(game.ReplicatedStorage.Packages.flipper)
 local HudGuiController = require(ClientModules.HudGuiController)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
@@ -29,6 +30,7 @@ function BodyCustomizationScreen:saveCustomization()
 	RemoteEvents.AccessoryManager_RE:FireServer(Constants.EVENTS.ACCESSORY_MANAGER_EVENTS.TOGGLE_BODY_COLOR, {
 		bodyColor = self.selectedColor:getValue(),
 		bodyScale = self.bodyScale:getValue(),
+		selectedFace = self.selectedFace:getValue(),
 	})
 end
 
@@ -65,6 +67,13 @@ function BodyCustomizationScreen:getCustomization()
 				update = self.updateBodyScale,
 			},
 		})
+	elseif self.props.Input.customization == Constants.BODY_CUSTOMIZATIONS.FACES then
+		return createElement(FacesGui, {
+			faceBind = {
+				face = self.selectedFace,
+				update = self.updateSelectedFace,
+			},
+		})
 	end
 end
 
@@ -77,6 +86,8 @@ function BodyCustomizationScreen:init()
 		BodyDepthScale = 1,
 		HeadScale = 1,
 	})
+
+	self.selectedFace, self.updateSelectedFace = Roact.createBinding()
 
 	self.blur, self.updateBlur = Roact.createBinding(0)
 	self.blurMotor = Flipper.SingleMotor.new(0)
@@ -121,7 +132,7 @@ function BodyCustomizationScreen:render()
 					Avatar = createElement(AvatarVpComponent, {
 						userId = localPlayer.UserId,
 						canAnimate = true,
-						canRotate = true,
+						canRotate = self.props.Input.customization ~= Constants.BODY_CUSTOMIZATIONS.FACES,
 						canManuallyRotate = true,
 						AnchorPoint = theme.ap.center,
 						Position = theme.pos.center,
@@ -136,6 +147,15 @@ function BodyCustomizationScreen:render()
 							scale = self.bodyScale,
 							update = self.updateBodyScale,
 						},
+						faceBind = {
+							face = self.selectedFace,
+							update = self.updateSelectedFace,
+						},
+						focusPart = self.props.Input.customization == Constants.BODY_CUSTOMIZATIONS.FACES and "Head"
+							or nil,
+						offset = self.props.Input.customization == Constants.BODY_CUSTOMIZATIONS.FACES
+								and CFrame.new(0, 0, -15)
+							or nil,
 					}),
 				}),
 				ActionButtons = createElement("Frame", {

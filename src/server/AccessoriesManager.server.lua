@@ -56,7 +56,7 @@ local function ToggleAccessory(player, data)
 	end
 end
 
-local function UpdateBodyColor(player, bodyColor)
+local function SaveBodyCustomizations(player, data)
 	local character = player.Character
 	if not character then
 		return
@@ -67,6 +67,10 @@ local function UpdateBodyColor(player, bodyColor)
 	if not humanoid then
 		return
 	end
+
+	local bodyColor = data.bodyColor
+	local bodyScale = data.bodyScale
+	local selectedFace = data.selectedFace
 
 	local description = humanoid:GetAppliedDescription()
 
@@ -74,29 +78,12 @@ local function UpdateBodyColor(player, bodyColor)
 		description[prop] = bodyColor
 	end
 
-	humanoid:ApplyDescription(description)
-end
-
-local function UpdateBodyScale(player, bodyScale)
-	local character = player.Character
-	if not character then
-		return
-	end
-
-	local humanoid: Humanoid = character:FindFirstChildOfClass("Humanoid")
-
-	if not humanoid then
-		return
-	end
-
-	local description = humanoid:GetAppliedDescription()
-
 	description.HeightScale = bodyScale.BodyHeightScale
 	description.WidthScale = bodyScale.BodyWidthScale
 	description.DepthScale = bodyScale.BodyDepthScale
 	description.HeadScale = bodyScale.HeadScale
-	-- description.ProportionScale = 0.9
-	-- description.BodyTypeScale = 0.5
+
+	description.Face = selectedFace or 0
 
 	humanoid:ApplyDescription(description)
 end
@@ -105,8 +92,7 @@ local function OnAccessoryManagerEvent(player, eventName, eventData)
 	if eventName == Constants.EVENTS.ACCESSORY_MANAGER_EVENTS.TOGGLE_ACCESSORY then
 		ToggleAccessory(player, eventData)
 	elseif eventName == Constants.EVENTS.ACCESSORY_MANAGER_EVENTS.TOGGLE_BODY_COLOR then
-		UpdateBodyColor(player, eventData.bodyColor)
-		UpdateBodyScale(player, eventData.bodyScale)
+		SaveBodyCustomizations(player, eventData)
 	end
 end
 
