@@ -77,14 +77,23 @@ function RampWalkModule.startWalk(playerData, getPoseAnim)
 
 		humanoid:MoveTo(posingPos.CFrame.Position)
 
+		local poseAnimChangedConnection
 		return Promise.fromEvent(humanoid.MoveToFinished)
 			:andThen(function()
 				if getPoseAnim then
-					local anim = getPoseAnim(playerData.player)
-					if anim then
-						PlayerController.playAnimation(model, anim, {
-							["Looped"] = false,
-						})
+					local animValue = getPoseAnim(playerData.player)
+
+					if animValue then
+						poseAnimChangedConnection = animValue.Changed:Connect(function()
+							if not animValue.Value then
+								return
+							end
+
+							PlayerController.playAnimation(model, animValue.Value, {}, true)
+						end)
+						if animValue.Value then
+							PlayerController.playAnimation(model, animValue.Value, {}, true)
+						end
 					end
 				end
 
@@ -96,8 +105,12 @@ function RampWalkModule.startWalk(playerData, getPoseAnim)
 				return Promise.delay(poseWaitTime)
 			end)
 			:andThen(function()
+				if poseAnimChangedConnection then
+					poseAnimChangedConnection:Disconnect()
+				end
 				humanoid:MoveTo(endPos.CFrame.Position)
 			end)
+			:finally(function() end)
 	end)
 
 	return promise

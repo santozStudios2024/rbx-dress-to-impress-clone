@@ -86,8 +86,8 @@ function PlayerController.resetDescription(player)
 	humanoid:ApplyDescription(description)
 end
 
-function PlayerController.playAnimation(character, animation, animProps)
-	local hum = character:FindFirstChildOfClass("Humanoid")
+function PlayerController.playAnimation(character, animation, animProps, stopAll)
+	local hum: Humanoid = character:FindFirstChildOfClass("Humanoid")
 	if not hum then
 		return
 	end
@@ -100,6 +100,15 @@ function PlayerController.playAnimation(character, animation, animProps)
 	local animTrack: AnimationTrack = animator:LoadAnimation(animation)
 	if not animTrack then
 		return
+	end
+
+	print("Stop all animations: " .. tostring(stopAll))
+	if stopAll then
+		print("Playing animation: " .. tostring(#animator:GetPlayingAnimationTracks()))
+		for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
+			print("Stop Playing Track")
+			track:Stop()
+		end
 	end
 
 	if animProps then
