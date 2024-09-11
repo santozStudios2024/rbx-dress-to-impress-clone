@@ -232,10 +232,20 @@ function RatingScreen:init()
 
 	self.emotesList = Roact.createRef()
 	self.selectedEmote, self.updateSelectedEmote = Roact.createBinding()
+	self.emotesVisible, self.updateEmotesVisible = Roact.createBinding(false)
 	self.emotesFramePos, self.updateEmotesFramePos = Roact.createBinding(UDim2.fromScale(1.5, 0.23))
 	self.emotesFrameMotor = Flipper.SingleMotor.new(1.5)
 	self.emotesFrameMotor:onStep(function(value)
 		self.updateEmotesFramePos(UDim2.fromScale(value, 0.23))
+	end)
+	self.emotesFrameMotor:onComplete(function()
+		local value = self.emotesFrameMotor:getValue()
+
+		if value > 1.2 then
+			self.updateEmotesVisible(false)
+		else
+			self.updateEmotesVisible(true)
+		end
 	end)
 
 	self.perRatingTime = 0
