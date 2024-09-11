@@ -8,10 +8,10 @@ local BaseTheme = require(ClientModules.BaseTheme)
 local ImageAssets = require(game.ReplicatedStorage.Shared.Assets.ImageAssets)
 local TweeningFrame = require(ClientModules.Components.TweeningFrame)
 local LocalGameStateManager = require(ClientModules.LocalGameStateManager)
--- local Promise = require(game.ReplicatedStorage.Packages.Promise)
 local RampWalkModule = require(ClientModules.RampWalkModule)
 local Constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local LayoutUtil = require(ClientModules.LayoutUtil)
+local Flipper = require(game.ReplicatedStorage.Packages.flipper)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local Timer = Utils.Timer
 local UIRatioHandler = Utils.UIRatioHandler
@@ -39,6 +39,17 @@ function RatingScreen:showNextPlayer(gameState)
 
 	self.updateSubmissionData(submissionData)
 
+	if submissionData.player == localPlayer then
+		self.emotesFrameMotor:setGoal(Flipper.Spring.new(0.98, {
+			frequency = 2,
+			dampingRatio = 1.2,
+		}))
+	else
+		self.emotesFrameMotor:setGoal(Flipper.Spring.new(1.5, {
+			frequency = 2,
+			dampingRatio = 1.2,
+		}))
+	end
 	RampWalkModule.startWalk(submissionData, function(player)
 		local selectedPosingAnimation = player:FindFirstChild("SelectedPosingAnimation")
 
@@ -46,7 +57,7 @@ function RatingScreen:showNextPlayer(gameState)
 			return
 		end
 
-		return selectedPosingAnimation.Value
+		return selectedPosingAnimation
 	end):andThen(function(model)
 		RampWalkModule.tweenCamera(model, true)
 
@@ -81,13 +92,6 @@ function RatingScreen:getEmotesList()
 					UICorner = createElement("UICorner", {
 						CornerRadius = UDim.new(0.2),
 					}),
-					-- UIGradient = createElement("UIGradient", {
-					-- 	Color = ColorSequence.new({
-					-- 		ColorSequenceKeypoint.new(0, Color3.new(0.521568, 0.521568, 0.521568)),
-					-- 		ColorSequenceKeypoint.new(1, Color3.new(0.713725, 0.713725, 0.713725)),
-					-- 	}),
-					-- 	Rotation = -45,
-					-- }),
 					MainFrame = createElement("Frame", {
 						AnchorPoint = theme.ap.center,
 						Position = theme.pos.center,
@@ -228,6 +232,11 @@ function RatingScreen:init()
 
 	self.emotesList = Roact.createRef()
 	self.selectedEmote, self.updateSelectedEmote = Roact.createBinding()
+	self.emotesFramePos, self.updateEmotesFramePos = Roact.createBinding(UDim2.fromScale(1.5, 0.23))
+	self.emotesFrameMotor = Flipper.SingleMotor.new(1.5)
+	self.emotesFrameMotor:onStep(function(value)
+		self.updateEmotesFramePos(UDim2.fromScale(value, 0.23))
+	end)
 
 	self.perRatingTime = 0
 	self.showNext = true
@@ -319,7 +328,7 @@ function RatingScreen:render()
 				}),
 				EmotesFrame = createElement("Frame", {
 					AnchorPoint = theme.ap.right_top,
-					Position = UDim2.fromScale(0.98, 0.23),
+					Position = self.emotesFramePos,
 					Size = UDim2.fromScale(0.15, 0.75),
 					BackgroundColor3 = Color3.new(0, 0, 0),
 				}, {
