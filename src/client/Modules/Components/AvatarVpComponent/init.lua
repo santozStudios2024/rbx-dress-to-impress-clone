@@ -5,6 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 
 -- Dependencies --
 local ClientModules = script.Parent.Parent
+local Constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local Roact = require(game.ReplicatedStorage.Packages.roact)
 local BaseTheme = require(ClientModules.BaseTheme)
 local VpModelModule = require(game.ReplicatedStorage.Packages.viewportmodel)
@@ -96,8 +97,12 @@ function AvatarVpComponent:updateVp()
 				task.wait()
 
 				local model = pm:Clone()
-				-- model.WorldPivot = model.PrimaryPart.CFrame
 				model.PrimaryPart = model.UpperTorso
+
+				if self.props.focusPart and model:FindFirstChild(self.props.focusPart) then
+					print("Setting focus part")
+					model.PrimaryPart = model:FindFirstChild(self.props.focusPart)
+				end
 
 				-- Add Emote Player --
 				if model:FindFirstChild("Animate") then
@@ -121,121 +126,54 @@ function AvatarVpComponent:updateVp()
 					return
 				end
 
-				local camera = vp.CurrentCamera
-				if not camera then
-					camera = Instance.new("Camera")
-					camera.Parent = vp
-					camera.CameraType = Enum.CameraType.Scriptable
-					camera.DiagonalFieldOfView = 20
-					camera.FieldOfView = 20
+				self.camera = vp.CurrentCamera
+				if not self.camera then
+					self.camera = Instance.new("Camera")
+					self.camera.Parent = vp
+					self.camera.CameraType = Enum.CameraType.Scriptable
+					self.camera.DiagonalFieldOfView = 20
+					self.camera.FieldOfView = 20
 				end
 
 				-- camera.CFrame = CFrame.new(1000, 1000, 1000)
-				vp.CurrentCamera = camera
+				vp.CurrentCamera = self.camera
 				vp.WorldModel:ClearAllChildren()
 
 				model.Parent = vp.WorldModel
 
-				-- local hum = model:WaitForChild("Humanoid", math.huge)
-				-- local hd: HumanoidDescription = hum:GetAppliedDescription()
-				-- hd.Parent = script
+				self.vpfModel = VpModelModule.new(vp, self.camera)
 
-				-- local appliedAcc = hd:GetAccessories(true)
-				-- local finalAcc = {}
-				-- for _, acData in ipairs(appliedAcc) do
-				-- 	if acData.AccessoryType == Enum.AccessoryType.Hair then
-				-- 		table.insert(finalAcc, acData)
-				-- 	end
-				-- end
-				-- hd:SetAccessories(finalAcc, true)
-
-				-- task.wait()
-
-				-- local applyDes = false
-				-- for _, info in ipairs(self.props.productsInfo) do
-				-- 	if
-				-- 		info.AssetTypeId == 24
-				-- 		or info.AssetTypeId == 61
-				-- 		or (info.AssetTypeId >= 48 and info.AssetTypeId <= 56)
-				-- 	then
-				-- 		local anim = Instance.new("Animation")
-
-				-- 		anim.AnimationId = "rbxassetid://" .. info.AssetId
-
-				-- 		local isSuccess, animTrack: AnimationTrack = pcall(function()
-				-- 			return hum.Animator:LoadAnimation(anim)
-				-- 		end)
-				-- 		if not isSuccess then
-				-- 			continue
-				-- 		end
-
-				-- 		animTrack.Looped = true
-				-- 		animTrack.Priority = Enum.AnimationPriority.Action
-
-				-- 		animTrack:Play()
-
-				-- 		continue
-				-- 	end
-
-				-- 	local isLayered = info.AssetTypeId >= 64
-				-- 	local AccessoryType = ACCESSORY_INDEX[info.AssetTypeId]
-
-				-- 	if isLayered then
-				-- 		local acc = hd:GetAccessories(true)
-
-				-- 		local accData = {
-				-- 			Order = #acc,
-				-- 			AccessoryType = AccessoryType,
-				-- 			AssetId = info.AssetId,
-				-- 			isLayered = false,
-				-- 		}
-				-- 		table.insert(acc, accData)
-
-				-- 		hd:SetAccessories(acc, true)
-
-				-- 		applyDes = true
-				-- 		continue
-				-- 	end
-
-				-- 	if not AccessoryType then
-				-- 		warn("INVALID ACCESSORY TYPE!!!")
-				-- 		continue
-				-- 	end
-
-				-- 	local success, _ = pcall(function()
-				-- 		if hd[AccessoryType] and info.AssetTypeId ~= 11 and info.AssetTypeId ~= 12 then
-				-- 			hd[AccessoryType] = hd[AccessoryType] .. "," .. info.AssetId
-				-- 		else
-				-- 			hd[AccessoryType] = info.AssetId
-				-- 		end
-				-- 	end)
-				-- 	if not success then
-				-- 		print(AccessoryType .. " causing error")
-				-- 		continue
-				-- 	end
-				-- 	-- hd[AccessoryType] = info.AssetId
-				-- 	applyDes = true
-				-- end
-
-				-- if applyDes then
-				-- 	hum:ApplyDescriptionReset(hd)
-				-- end
-
-				-- task.wait()
-
-				-- hd:Destroy()
-
-				local vpfModel = VpModelModule.new(vp, camera)
-
-				vpfModel:SetModel(model)
+				self.vpfModel:SetModel(model)
 
 				local theta = math.rad(180)
 				local orientation = CFrame.fromEulerAnglesYXZ(math.rad(0), theta, 0)
-				local distance = vpfModel:GetFitDistance(model:GetPivot().Position)
+				local distance = self.vpfModel:GetFitDistance(model:GetPivot().Position)
 
-				camera.CFrame = model:GetPivot() * CFrame.new(0, 0, -distance) * orientation
+				local finalCF = model:GetPivot() * CFrame.new(0, 0, -distance) * orientation
+				if self.props.offset then
+					print("Setting Offset")
+					finalCF = finalCF * self.props.offset
+				end
+				self.camera.CFrame = finalCF
 
 				resolve()
+
+				local humanoid = self.dummyModel:FindFirstChildOfClass("Humanoid")
+				if not humanoid then
+					return
+				end
+
+				local description: HumanoidDescription = humanoid:GetAppliedDescription()
+
+				self.props.faceBind.update(description.Face)
+
+				self.props.scaleBind.update({
+					BodyHeightScale = description.HeightScale,
+					BodyWidthScale = description.WidthScale,
+					BodyDepthScale = description.DepthScale,
+					HeadScale = description.HeadScale,
+				})
+				self.props.colorBind.update(description.HeadColor)
 			end)
 			:catch(function(err)
 				reject(err)
@@ -371,6 +309,59 @@ function AvatarVpComponent:render()
 					self.mousePressed = true
 					self.manullyRotating = true
 				end,
+				Visible = Roact.joinBindings({
+					self.props.colorBind.color,
+					self.props.scaleBind.scale,
+					self.props.faceBind.face,
+				}):map(function(values)
+					if not self.dummyModel then
+						return
+					end
+
+					local selectedColor = values[1]
+					local scaling = values[2]
+					local selectedFace = values[3]
+
+					local humanoid = self.dummyModel:FindFirstChildOfClass("Humanoid")
+
+					if humanoid then
+						local description: HumanoidDescription = humanoid:GetAppliedDescription()
+
+						for _, prop in pairs(Constants.BODY_COLORS) do
+							description[prop] = selectedColor
+						end
+
+						description.HeightScale = scaling.BodyHeightScale
+						description.WidthScale = scaling.BodyWidthScale
+						description.DepthScale = scaling.BodyDepthScale
+						description.HeadScale = scaling.HeadScale
+
+						-- description.ProportionScale = 0.9
+						-- description.BodyTypeScale = 0.5
+						description.Face = selectedFace or 0
+
+						humanoid:ApplyDescription(description)
+					end
+
+					Promise.new(function()
+						self.vpfModel = VpModelModule.new(self.vpRef:getValue(), self.camera)
+
+						self.vpfModel:SetModel(self.dummyModel)
+
+						local theta = math.rad(180)
+						local orientation = CFrame.fromEulerAnglesYXZ(math.rad(0), theta, 0)
+						local distance = self.vpfModel:GetFitDistance(self.dummyModel:GetPivot().Position)
+
+						local finalCF = self.dummyModel:GetPivot() * CFrame.new(0, 0, -distance) * orientation
+						if self.props.offset then
+							print("Setting Offset")
+							finalCF = finalCF * self.props.offset
+						end
+						self.camera.CFrame = finalCF
+					end):catch(warn)
+
+					return true
+				end),
 			}, {
 				Loading = createElement("TextLabel", {
 					AnchorPoint = theme.ap.center,

@@ -12,6 +12,7 @@ local Constants = {
 		},
 		ACCESSORY_MANAGER_EVENTS = {
 			TOGGLE_ACCESSORY = "ToggleAccessory",
+			TOGGLE_BODY_COLOR = "ToggleBodyColor",
 		},
 		COMPETITION_EVENTS = {
 			RATING = "Rating",
@@ -20,6 +21,20 @@ local Constants = {
 	},
 	TAGS = {
 		ACCESSORY = "Accessory",
+		BODY_PAD = "BodyPad",
+	},
+	BODY_COLORS = {
+		HEAD_COLOR3 = "HeadColor",
+		TORSO_COLOR3 = "TorsoColor",
+		LEFT_ARM_COLOR3 = "LeftArmColor",
+		RIGHT_ARM_COLOR3 = "RightArmColor",
+		LEFT_LEG_COLOR3 = "LeftLegColor",
+		RIGHT_LEG_COLOR3 = "RightLegColor",
+	},
+	BODY_CUSTOMIZATIONS = {
+		COLOR = "Color",
+		SCALE = "Scale",
+		FACES = "Faces",
 	},
 }
 

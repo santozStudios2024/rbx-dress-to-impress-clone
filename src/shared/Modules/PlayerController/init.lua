@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 -- Dependencies --
+local Constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local TableUtils = Utils.TableUtils
 
@@ -63,6 +64,26 @@ function PlayerController.resetDescription(player)
 
 		child:Destroy()
 	end)
+
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid then
+		return
+	end
+
+	local description: HumanoidDescription = humanoid:GetAppliedDescription()
+
+	for _, prop in pairs(Constants.BODY_COLORS) do
+		description[prop] = Color3.fromHex("#7F7F7F")
+	end
+
+	description.HeightScale = 1
+	description.WidthScale = 1
+	description.DepthScale = 1
+	description.HeadScale = 1
+
+	description.Face = 0
+
+	humanoid:ApplyDescription(description)
 end
 
 function PlayerController.playAnimation(character, animation, animProps)
