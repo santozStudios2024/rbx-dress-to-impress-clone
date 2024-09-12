@@ -35,9 +35,9 @@ function RampWalkModule.startWalk(playerData, getPoseAnim)
 			return
 		end
 
-		character.Archivable = true
+		local clone = PlayerController.cloneCharacter(character)
 
-		resolve(character:Clone())
+		resolve(clone)
 	end)
 
 	promise:andThen(function(model)

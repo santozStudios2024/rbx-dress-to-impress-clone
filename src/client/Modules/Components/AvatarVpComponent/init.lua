@@ -9,6 +9,7 @@ local Constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local Roact = require(game.ReplicatedStorage.Packages.roact)
 local BaseTheme = require(ClientModules.BaseTheme)
 local VpModelModule = require(game.ReplicatedStorage.Packages.viewportmodel)
+local PlayerController = require(game.ReplicatedStorage.Shared.Modules.PlayerController)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local UIRatioHandler = Utils.UIRatioHandler
 local Promise = require(game.ReplicatedStorage.Packages.Promise)
@@ -24,6 +25,35 @@ local assets = game.ReplicatedStorage.Shared.Assets
 local animate = assets.Animate
 
 -- Constants --
+local PARTS_TO_SCALE = {
+	HeadScale = {
+		"Head",
+	},
+	TorsoScale = {
+		"UpperTorso",
+		"LowerTorso",
+	},
+	RightArmScale = {
+		"RightUpperArm",
+		"RightLowerArm",
+		"RightHand",
+	},
+	LeftArmScale = {
+		"LeftUpperArm",
+		"LeftLowerArm",
+		"LeftHand",
+	},
+	LeftLegScale = {
+		"LeftUpperLeg",
+		"LeftLowerLeg",
+		"LeftFoot",
+	},
+	RightLegScale = {
+		"RightUpperLeg",
+		"RightLowerLeg",
+		"RightFoot",
+	},
+}
 local AutomaticRotationSpeed = 30
 local ManualRotationSpeed = 180
 -- local ACCESSORY_INDEX = {
@@ -89,18 +119,14 @@ function AvatarVpComponent:updateVp()
 				modelData.model = localPlayer.Character
 			end
 
-			modelFound(modelData.model)
+			local clone = PlayerController.cloneCharacter(modelData.model)
+
+			modelFound(clone)
 		end)
-			:andThen(function(pm)
-				pm.Archivable = true
-
-				task.wait()
-
-				local model = pm:Clone()
+			:andThen(function(model)
 				model.PrimaryPart = model.UpperTorso
 
 				if self.props.focusPart and model:FindFirstChild(self.props.focusPart) then
-					print("Setting focus part")
 					model.PrimaryPart = model:FindFirstChild(self.props.focusPart)
 				end
 
@@ -151,7 +177,6 @@ function AvatarVpComponent:updateVp()
 
 				local finalCF = model:GetPivot() * CFrame.new(0, 0, -distance) * orientation
 				if self.props.offset then
-					print("Setting Offset")
 					finalCF = finalCF * self.props.offset
 				end
 				self.camera.CFrame = finalCF
@@ -167,13 +192,40 @@ function AvatarVpComponent:updateVp()
 
 				self.props.faceBind.update(description.Face)
 
-				self.props.scaleBind.update({
-					BodyHeightScale = description.HeightScale,
-					BodyWidthScale = description.WidthScale,
-					BodyDepthScale = description.DepthScale,
-					HeadScale = description.HeadScale,
-				})
+				-- self.props.scaleBind.update({
+				-- 	BodyHeightScale = description.HeightScale,
+				-- 	BodyWidthScale = description.WidthScale,
+				-- 	BodyDepthScale = description.DepthScale,
+				-- 	HeadScale = description.HeadScale,
+				-- })
 				self.props.colorBind.update(description.HeadColor)
+
+				local scalingParts = {
+					HeadScale = "Head",
+					TorsoScale = "UpperTorso",
+					LeftArmScale = "LeftUpperArm",
+					RightArmScale = "RightUpperArm",
+					LeftLegScale = "LeftUpperLeg",
+					RightLegScale = "RightUpperLeg",
+				}
+
+				local bodyScale = {}
+				for prop, partName in pairs(scalingParts) do
+					local part = self.dummyModel:FindFirstChild(partName)
+					if not part then
+						continue
+					end
+
+					local originalSizeValue = part:FindFirstChild("OrignalScale")
+					if not originalSizeValue then
+						bodyScale[prop] = 1
+					end
+
+					local scaling = (part.Size / originalSizeValue.Value).X
+					bodyScale[prop] = scaling
+				end
+
+				self.prop.scaleBind.update(bodyScale)
 			end)
 			:catch(function(err)
 				reject(err)
@@ -331,16 +383,26 @@ function AvatarVpComponent:render()
 							description[prop] = selectedColor
 						end
 
-						description.HeightScale = scaling.BodyHeightScale
-						description.WidthScale = scaling.BodyWidthScale
-						description.DepthScale = scaling.BodyDepthScale
-						description.HeadScale = scaling.HeadScale
+						-- description.HeightScale = scaling.BodyHeightScale
+						-- description.WidthScale = scaling.BodyWidthScale
+						-- description.DepthScale = scaling.BodyDepthScale
+						-- description.HeadScale = scaling.HeadScale
 
 						-- description.ProportionScale = 0.9
 						-- description.BodyTypeScale = 0.5
 						description.Face = selectedFace or 0
 
 						humanoid:ApplyDescription(description)
+					end
+
+					for partToScale, scale in pairs(scaling) do
+						if not PARTS_TO_SCALE[partToScale] then
+							continue
+						end
+
+						for _, partName in ipairs(PARTS_TO_SCALE[partToScale]) do
+							PlayerController.scalePart(self.dummyModel, partName, scale)
+						end
 					end
 
 					Promise.new(function()
@@ -354,7 +416,6 @@ function AvatarVpComponent:render()
 
 						local finalCF = self.dummyModel:GetPivot() * CFrame.new(0, 0, -distance) * orientation
 						if self.props.offset then
-							print("Setting Offset")
 							finalCF = finalCF * self.props.offset
 						end
 						self.camera.CFrame = finalCF
