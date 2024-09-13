@@ -1,3 +1,6 @@
+-- Services --
+local UserInputService = game:GetService("UserInputService")
+
 -- Dependencies --
 local ClientModules = script.Parent.Parent
 local Roact = require(game.ReplicatedStorage.Packages.roact)
@@ -30,6 +33,10 @@ end
 function Slider:init()
 	self.updatingValue = false
 	self.sliderFrame = Roact.createRef()
+
+	self.inputConnection = UserInputService.InputEnded:Connect(function()
+		self.updatingValue = false
+	end)
 end
 
 function Slider:render()
