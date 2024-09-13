@@ -59,8 +59,6 @@ function RatingScreen:showNextPlayer(gameState)
 
 		return selectedPosingAnimation
 	end):andThen(function(model)
-		RampWalkModule.tweenCamera(model, true)
-
 		task.wait(gameState.metaData.ratingTime)
 
 		if not model then
