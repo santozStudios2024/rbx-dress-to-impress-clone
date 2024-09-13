@@ -24,8 +24,8 @@ jobs:
         - name: Publish Prod
           shell: bash
           env:
-            UID: 6448018291
-            PID: 84645288604594
+            UID: 6534218046
+            PID: 124183201707327
             API_KEY: ${{ secrets.PUBLISHING_API_KEY }}
             FILE: build.rbxlx
           run: rbxcloud experience publish -a "$API_KEY" -u "$UID" -p "$PID" -t published -f "$FILE"
