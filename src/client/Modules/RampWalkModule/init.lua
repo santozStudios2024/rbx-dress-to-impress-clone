@@ -73,6 +73,8 @@ function RampWalkModule.startWalk(playerData, getPoseAnim)
 
 		model:PivotTo(startPos.CFrame)
 
+		RampWalkModule.tweenCamera(model, true)
+
 		model.Parent = rampFolder.Models
 
 		humanoid:MoveTo(posingPos.CFrame.Position)
