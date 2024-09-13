@@ -190,16 +190,6 @@ function AvatarVpComponent:updateVp()
 
 				local description: HumanoidDescription = humanoid:GetAppliedDescription()
 
-				self.props.faceBind.update(description.Face)
-
-				-- self.props.scaleBind.update({
-				-- 	BodyHeightScale = description.HeightScale,
-				-- 	BodyWidthScale = description.WidthScale,
-				-- 	BodyDepthScale = description.DepthScale,
-				-- 	HeadScale = description.HeadScale,
-				-- })
-				self.props.colorBind.update(description.HeadColor)
-
 				local scalingParts = {
 					HeadScale = "Head",
 					TorsoScale = "UpperTorso",
@@ -216,7 +206,7 @@ function AvatarVpComponent:updateVp()
 						continue
 					end
 
-					local originalSizeValue = part:FindFirstChild("OrignalScale")
+					local originalSizeValue = part:FindFirstChild("OriginalSize")
 					if not originalSizeValue then
 						bodyScale[prop] = 1
 					end
@@ -225,7 +215,13 @@ function AvatarVpComponent:updateVp()
 					bodyScale[prop] = scaling
 				end
 
-				self.prop.scaleBind.update(bodyScale)
+				self.props.resetScreen = true
+
+				self.props.scaleBind.update(bodyScale)
+				self.props.faceBind.update(description.Face)
+				self.props.colorBind.update(description.HeadColor)
+
+				self.props.resetScreen = false
 			end)
 			:catch(function(err)
 				reject(err)
@@ -366,6 +362,9 @@ function AvatarVpComponent:render()
 					self.props.scaleBind.scale,
 					self.props.faceBind.face,
 				}):map(function(values)
+					if self.props.resetScreen then
+						return
+					end
 					if not self.dummyModel then
 						return
 					end

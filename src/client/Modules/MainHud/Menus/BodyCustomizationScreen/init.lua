@@ -152,6 +152,7 @@ function BodyCustomizationScreen:render()
 						Size = theme.size,
 						productsInfo = {},
 						Visible = true,
+						resetScreen = true,
 						colorBind = {
 							color = self.selectedColor,
 							update = self.updateSelectedColor,

@@ -110,7 +110,7 @@ function PlayerController.resetDescription(player)
 			return
 		end
 
-		local originalSizeValue = part:FindFirstChild("OrignalScale")
+		local originalSizeValue = part:FindFirstChild("OriginalSize")
 		if not originalSizeValue then
 			return
 		end
@@ -161,10 +161,10 @@ function PlayerController.scalePart(character, partName, scaleFactor)
 		return
 	end
 
-	local originalSizeValue = part:FindFirstChild("OrignalScale")
+	local originalSizeValue = part:FindFirstChild("OriginalSize")
 	if not originalSizeValue then
 		originalSizeValue = Instance.new("Vector3Value")
-		originalSizeValue.Name = "OrignalScale"
+		originalSizeValue.Name = "OriginalSize"
 		originalSizeValue.Parent = part
 		originalSizeValue.Value = part.Size
 	end
@@ -208,7 +208,7 @@ function PlayerController.cloneCharacter(character)
 			return
 		end
 
-		local originalSizeValue = child:FindFirstChild("OrignalScale")
+		local originalSizeValue = child:FindFirstChild("OriginalSize")
 		if not originalSizeValue then
 			return
 		end
