@@ -10,7 +10,8 @@ local BaseTheme = require(ClientModules.BaseTheme)
 local TweeningFrame = require(ClientModules.Components.TweeningFrame)
 local ColorPicker = require(ClientModules.Components.ColorPicker)
 local AvatarVpComponent = require(ClientModules.Components.AvatarVpComponent)
-local BodyScalingGui = require(script.BodyScalingGui)
+-- local BodyScalingGui = require(script.BodyScalingGui)
+local PartScalingGui = require(script.PartScalingGui)
 local FacesGui = require(script.FacesGui)
 local Flipper = require(game.ReplicatedStorage.Packages.flipper)
 local HudGuiController = require(ClientModules.HudGuiController)
@@ -61,7 +62,13 @@ function BodyCustomizationScreen:getCustomization()
 			},
 		})
 	elseif self.props.Input.customization == Constants.BODY_CUSTOMIZATIONS.SCALE then
-		return createElement(BodyScalingGui, {
+		-- return createElement(BodyScalingGui, {
+		-- 	scaleBind = {
+		-- 		scale = self.bodyScale,
+		-- 		update = self.updateBodyScale,
+		-- 	},
+		-- })
+		return createElement(PartScalingGui, {
 			scaleBind = {
 				scale = self.bodyScale,
 				update = self.updateBodyScale,
@@ -81,10 +88,16 @@ function BodyCustomizationScreen:init()
 	self.selectedColor, self.updateSelectedColor = Roact.createBinding(Color3.new(1, 1, 1))
 
 	self.bodyScale, self.updateBodyScale = Roact.createBinding({
-		BodyHeightScale = 1,
-		BodyWidthScale = 1,
-		BodyDepthScale = 1,
+		-- BodyHeightScale = 1,
+		-- BodyWidthScale = 1,
+		-- BodyDepthScale = 1,
+		-- HeadScale = 1,
 		HeadScale = 1,
+		TorsoScale = 1,
+		LeftArmScale = 1,
+		LeftLegScale = 1,
+		RightArmScale = 1,
+		RightLegScale = 1,
 	})
 
 	self.selectedFace, self.updateSelectedFace = Roact.createBinding()

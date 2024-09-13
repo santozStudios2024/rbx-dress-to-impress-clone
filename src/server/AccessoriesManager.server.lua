@@ -1,27 +1,42 @@
--- Services --
--- local InsertService = game:GetService("InsertService")
--- local CollectionService = game:GetService("CollectionService")
--- local HttpService = game:GetService("HttpService")
--- local MarketPlaceService = game:GetService("MarketplaceService")
-
 -- Variables --
--- local accessories = { 18360418757 }
--- local placedAccessories = {}
 local RemoteEvents = game.ReplicatedStorage.RemoteEvents
 
--- Grid Info --
--- local gridSizeY = 3
--- local gridSpacing = 2
-
 -- Dependencies --
--- local Promise = require(game.ReplicatedStorage.Packages.Promise)
 local Constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
+local PlayerController = require(game.ReplicatedStorage.Shared.Modules.PlayerController)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local TableUtils = Utils.TableUtils
 
--- local accessoriesFolder = Instance.new("Folder")
--- accessoriesFolder.Name = "Accessories"
--- accessoriesFolder.Parent = workspace.World
+-- Constants --
+local PARTS_TO_SCALE = {
+	HeadScale = {
+		"Head",
+	},
+	TorsoScale = {
+		"UpperTorso",
+		"LowerTorso",
+	},
+	RightArmScale = {
+		"RightUpperArm",
+		"RightLowerArm",
+		"RightHand",
+	},
+	LeftArmScale = {
+		"LeftUpperArm",
+		"LeftLowerArm",
+		"LeftHand",
+	},
+	LeftLegScale = {
+		"LeftUpperLeg",
+		"LeftLowerLeg",
+		"LeftFoot",
+	},
+	RightLegScale = {
+		"RightUpperLeg",
+		"RightLowerLeg",
+		"RightFoot",
+	},
+}
 
 local function ToggleAccessory(player, data)
 	local character = player.character
@@ -78,14 +93,24 @@ local function SaveBodyCustomizations(player, data)
 		description[prop] = bodyColor
 	end
 
-	description.HeightScale = bodyScale.BodyHeightScale
-	description.WidthScale = bodyScale.BodyWidthScale
-	description.DepthScale = bodyScale.BodyDepthScale
-	description.HeadScale = bodyScale.HeadScale
+	-- description.HeightScale = bodyScale.BodyHeightScale
+	-- description.WidthScale = bodyScale.BodyWidthScale
+	-- description.DepthScale = bodyScale.BodyDepthScale
+	-- description.HeadScale = bodyScale.HeadScale
 
 	description.Face = selectedFace or 0
 
 	humanoid:ApplyDescription(description)
+
+	for partToScale, scale in pairs(bodyScale) do
+		if not PARTS_TO_SCALE[partToScale] then
+			continue
+		end
+
+		for _, partName in ipairs(PARTS_TO_SCALE[partToScale]) do
+			PlayerController.scalePart(character, partName, scale)
+		end
+	end
 end
 
 local function OnAccessoryManagerEvent(player, eventName, eventData)

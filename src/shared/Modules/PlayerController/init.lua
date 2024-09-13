@@ -11,6 +11,25 @@ local TableUtils = Utils.TableUtils
 -- local Assets = game.ReplicatedStorage.Shared.Assets
 -- local basicHd = Assets.BasicHD
 
+-- Constants --
+local PARTS_TO_SCALE = {
+	"Head",
+	"UpperTorso",
+	"LowerTorso",
+	"RightUpperArm",
+	"RightLowerArm",
+	"RightHand",
+	"LeftUpperArm",
+	"LeftLowerArm",
+	"LeftHand",
+	"RightUpperLeg",
+	"RightLowerLeg",
+	"RightFoot",
+	"LeftUpperLeg",
+	"LeftLowerLeg",
+	"LeftFoot",
+}
+
 local PlayerController = {}
 
 function PlayerController.toggleControls(enable)
@@ -57,14 +76,6 @@ function PlayerController.resetDescription(player)
 		return
 	end
 
-	TableUtils:apply(character:GetDescendants(), function(child)
-		if not child:IsA("Accessory") then
-			return
-		end
-
-		child:Destroy()
-	end)
-
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	if not humanoid then
 		return
@@ -84,6 +95,30 @@ function PlayerController.resetDescription(player)
 	description.Face = 0
 
 	humanoid:ApplyDescription(description)
+
+	TableUtils:apply(character:GetDescendants(), function(part)
+		if part:IsA("Accessory") then
+			part:Destroy()
+			return
+		end
+
+		if not part:IsA("BasePart") then
+			return
+		end
+
+		if not table.find(PARTS_TO_SCALE, part.Name) then
+			return
+		end
+
+		local originalSizeValue = part:FindFirstChild("OrignalScale")
+		if not originalSizeValue then
+			return
+		end
+
+		local scalingFactor = (part.Size / originalSizeValue.Value).X
+
+		PlayerController.scalePart(character, part.Name, scalingFactor)
+	end)
 end
 
 function PlayerController.playAnimation(character, animation, animProps, stopAll)
@@ -102,11 +137,8 @@ function PlayerController.playAnimation(character, animation, animProps, stopAll
 		return
 	end
 
-	print("Stop all animations: " .. tostring(stopAll))
 	if stopAll then
-		print("Playing animation: " .. tostring(#animator:GetPlayingAnimationTracks()))
 		for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
-			print("Stop Playing Track")
 			track:Stop()
 		end
 	end
@@ -118,6 +150,97 @@ function PlayerController.playAnimation(character, animation, animProps, stopAll
 	end
 
 	animTrack:Play()
+end
+
+function PlayerController.scalePart(character, partName, scaleFactor)
+	local part = character:FindFirstChild(partName)
+	if not part then
+		return
+	end
+	if not part:IsA("BasePart") then
+		return
+	end
+
+	local originalSizeValue = part:FindFirstChild("OrignalScale")
+	if not originalSizeValue then
+		originalSizeValue = Instance.new("Vector3Value")
+		originalSizeValue.Name = "OrignalScale"
+		originalSizeValue.Parent = part
+		originalSizeValue.Value = part.Size
+	end
+
+	part.Size = originalSizeValue.Value * scaleFactor
+
+	for _, joint in ipairs(character:GetDescendants()) do
+		if joint:IsA("Motor6D") then
+			if joint.Part0 == part then
+				local offset = (joint.C0.Position * scaleFactor) - joint.C0.Position
+				joint.C0 = CFrame.new(joint.C0.Position + offset)
+					* CFrame.fromEulerAnglesXYZ(joint.C0:ToEulerAnglesXYZ())
+			elseif joint.Part1 == part then
+				local offset = (joint.C1.Position * scaleFactor) - joint.C1.Position
+				joint.C1 = CFrame.new(joint.C1.Position + offset)
+					* CFrame.fromEulerAnglesXYZ(joint.C1:ToEulerAnglesXYZ())
+			end
+		end
+	end
+
+	for _, child in ipairs(part:GetChildren()) do
+		if child:IsA("Attachment") then
+			child.Position = child.Position * scaleFactor
+		elseif child:IsA("SpecialMesh") or child:IsA("MeshPart") then
+			child.Scale = child.Scale * scaleFactor
+		end
+	end
+end
+
+function PlayerController.cloneCharacter(character)
+	character.Archivable = true
+
+	local scalingTable = {}
+
+	TableUtils:apply(character:GetDescendants(), function(child)
+		if not child:IsA("BasePart") then
+			return
+		end
+
+		if not table.find(PARTS_TO_SCALE, child.Name) then
+			return
+		end
+
+		local originalSizeValue = child:FindFirstChild("OrignalScale")
+		if not originalSizeValue then
+			return
+		end
+
+		local scalingFactor = (child.Size / originalSizeValue.Value).X
+
+		scalingTable[child.Name] = scalingFactor
+	end)
+
+	local clone = character:Clone()
+	clone:PivotTo(CFrame.new(1000, 10000, 1000))
+	clone.Parent = workspace
+
+	task.wait()
+
+	TableUtils:apply(clone:GetDescendants(), function(child)
+		if not child:IsA("BasePart") then
+			return
+		end
+
+		if not table.find(PARTS_TO_SCALE, child.Name) then
+			return
+		end
+
+		if not scalingTable[child.Name] then
+			return
+		end
+
+		PlayerController.scalePart(clone, child.Name, scalingTable[child.Name])
+	end)
+
+	return clone
 end
 
 return PlayerController
