@@ -36,6 +36,10 @@ local Constants = {
 		SCALE = "Scale",
 		FACES = "Faces",
 	},
+	FACE_TYPE = {
+		FACE = "Face",
+		FACE_ACCESSORY = "FaceAccessory",
+	},
 }
 
 return Constants

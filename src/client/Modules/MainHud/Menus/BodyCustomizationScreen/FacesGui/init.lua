@@ -5,6 +5,7 @@ local BaseTheme = require(ClientModules.BaseTheme)
 local Faces = require(game.ReplicatedStorage.Shared.Assets.Faces)
 local LayoutUtil = require(ClientModules.LayoutUtil)
 local ImageAssets = require(game.ReplicatedStorage.Shared.Assets.ImageAssets)
+local GameLoadingManager = require(game.ReplicatedStorage.Shared.Modules.GameLoadingManager)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local UIRatioHandler = Utils.UIRatioHandler
 
@@ -15,9 +16,13 @@ local roactEvents = Roact.Event
 local FacesGui = Roact.Component:extend("FacesGui")
 
 function FacesGui:getFaces(theme)
+	if not GameLoadingManager.isGameLoaded() then
+		return
+	end
+
 	local guis = {}
 
-	for name, faceId in pairs(Faces) do
+	for name, faceData in pairs(Faces) do
 		local gui = createElement("CanvasGroup", {
 			BackgroundColor3 = Color3.new(1, 1, 1),
 			LayoutOrder = #guis + 1,
@@ -45,7 +50,7 @@ function FacesGui:getFaces(theme)
 					Position = theme.pos.center,
 					Size = theme.size,
 					BackgroundTransparency = 1,
-					Image = "rbxthumb://type=Asset&id=" .. faceId .. "&w=150&h=150",
+					Image = "rbxthumb://type=Asset&id=" .. faceData.assetId .. "&w=150&h=150",
 					ScaleType = Enum.ScaleType.Fit,
 				}),
 			}),
@@ -75,7 +80,11 @@ function FacesGui:getFaces(theme)
 				BackgroundColor3 = Color3.new(0, 0, 0),
 				ZIndex = 5,
 				Visible = self.props.faceBind.face:map(function(selectedFace)
-					return selectedFace == faceId
+					if not selectedFace then
+						return false
+					end
+
+					return selectedFace.assetId == faceData.assetId
 				end),
 			}, {
 				TickImage = createElement("ImageLabel", {
@@ -96,10 +105,10 @@ function FacesGui:getFaces(theme)
 				[roactEvents.Activated] = function()
 					local currentFace = self.props.faceBind.face:getValue()
 
-					if currentFace == faceId then
+					if currentFace and currentFace.assetId == faceData.assetId then
 						self.props.faceBind.update(nil)
 					else
-						self.props.faceBind.update(faceId)
+						self.props.faceBind.update(faceData)
 					end
 				end,
 			}),
@@ -114,6 +123,10 @@ end
 function FacesGui:init()
 	self.canvasPos, self.updateCanvasPos = Roact.createBinding(Vector2.new(0, 0))
 	self.scrollingFrame = Roact.createRef()
+
+	GameLoadingManager.gameLoadedSignal:Connect(function()
+		self:setState({})
+	end)
 end
 
 function FacesGui:render()
@@ -130,6 +143,22 @@ function FacesGui:render()
 					PaddingLeft = UDim.new(0.05),
 					PaddingRight = UDim.new(0.05),
 					PaddingTop = UDim.new(0.05),
+				}),
+				LoadingScreen = createElement("TextLabel", {
+					Size = UDim2.fromScale(1, 1),
+					BackgroundTransparency = 1,
+					Text = "LOADING FACES . . .",
+					TextScaled = true,
+					FontFace = theme.fonts.bold,
+					TextColor3 = Color3.new(1, 1, 1),
+					Visible = not GameLoadingManager.isGameLoaded(),
+				}, {
+					UIPadding = createElement("UIPadding", {
+						PaddingBottom = UDim.new(0.3),
+						PaddingLeft = UDim.new(0.3),
+						PaddingRight = UDim.new(0.3),
+						PaddingTop = UDim.new(0.3),
+					}),
 				}),
 				FacesList = createElement("ScrollingFrame", {
 					AnchorPoint = theme.ap.center,

@@ -4,6 +4,7 @@ local RunService = game:GetService("RunService")
 
 -- Dependencies --
 local Constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
+local Promise = require(game.ReplicatedStorage.Packages.Promise)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local TableUtils = Utils.TableUtils
 
@@ -93,6 +94,7 @@ function PlayerController.resetDescription(player)
 	description.HeadScale = 1
 
 	description.Face = 0
+	description.FaceAccessory = ""
 
 	humanoid:ApplyDescription(description)
 
@@ -119,6 +121,22 @@ function PlayerController.resetDescription(player)
 
 		PlayerController.scalePart(character, part.Name, scalingFactor)
 	end)
+
+	Promise.new(function(_, reject)
+		local head = character:FindFirstChild("Head")
+
+		if not head then
+			reject("Head not found")
+			return
+		end
+
+		local face = head:FindFirstChild("face")
+		if not face then
+			reject("Face not found")
+		end
+
+		face.Transparency = 0
+	end):catch(warn)
 end
 
 function PlayerController.playAnimation(character, animation, animProps, stopAll)

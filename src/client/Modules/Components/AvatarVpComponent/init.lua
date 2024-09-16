@@ -10,9 +10,10 @@ local Roact = require(game.ReplicatedStorage.Packages.roact)
 local BaseTheme = require(ClientModules.BaseTheme)
 local VpModelModule = require(game.ReplicatedStorage.Packages.viewportmodel)
 local PlayerController = require(game.ReplicatedStorage.Shared.Modules.PlayerController)
+local Promise = require(game.ReplicatedStorage.Packages.Promise)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local UIRatioHandler = Utils.UIRatioHandler
-local Promise = require(game.ReplicatedStorage.Packages.Promise)
+local TableUtils = Utils.TableUtils
 
 -- Variables --
 local createElement = Roact.createElement
@@ -199,6 +200,19 @@ function AvatarVpComponent:updateVp()
 					RightLegScale = "RightUpperLeg",
 				}
 
+				local faceData
+				if description.FaceAccessory ~= "" then
+					faceData = {
+						assetId = tonumber(description.FaceAccessory),
+						assetType = Constants.FACE_TYPE.FACE_ACCESSORY,
+					}
+				else
+					faceData = {
+						assetId = description.Face,
+						assetType = Constants.FACE_TYPE.FACE,
+					}
+				end
+
 				local bodyScale = {}
 				for prop, partName in pairs(scalingParts) do
 					local part = self.dummyModel:FindFirstChild(partName)
@@ -218,7 +232,7 @@ function AvatarVpComponent:updateVp()
 				self.props.resetScreen = true
 
 				self.props.scaleBind.update(bodyScale)
-				self.props.faceBind.update(description.Face)
+				self.props.faceBind.update(faceData)
 				self.props.colorBind.update(description.HeadColor)
 
 				self.props.resetScreen = false
@@ -389,7 +403,34 @@ function AvatarVpComponent:render()
 
 						-- description.ProportionScale = 0.9
 						-- description.BodyTypeScale = 0.5
-						description.Face = selectedFace or 0
+						-- description.Face = selectedFace or 0
+						if selectedFace then
+							TableUtils:apply(self.dummyModel:GetChildren(), function(child)
+								if not child:IsA("Accessory") then
+									return
+								end
+
+								local handle = child:FindFirstChild("Handle")
+								if not handle then
+									return
+								end
+
+								if handle:FindFirstChild("FaceCenterAttachment") then
+									child:Destroy()
+								end
+							end)
+
+							if selectedFace.assetType == Constants.FACE_TYPE.FACE then
+								description.Face = selectedFace.assetId or 0
+								description.FaceAccessory = ""
+							else
+								description.FaceAccessory = selectedFace.assetId or 0
+								description.Face = 0
+							end
+						else
+							description.FaceAccessory = ""
+							description.Face = 0
+						end
 
 						humanoid:ApplyDescription(description)
 					end
@@ -403,6 +444,31 @@ function AvatarVpComponent:render()
 							PlayerController.scalePart(self.dummyModel, partName, scale)
 						end
 					end
+
+					Promise.new(function(_, reject)
+						local head = self.dummyModel:FindFirstChild("Head")
+
+						if not head then
+							reject("Head not found")
+							return
+						end
+
+						local face = head:FindFirstChild("face")
+						if not face then
+							reject("Face not found")
+						end
+
+						if not selectedFace then
+							face.Transparency = 0
+							return
+						end
+
+						if selectedFace.assetType == Constants.FACE_TYPE.FACE then
+							face.Transparency = 0
+						else
+							face.Transparency = 1
+						end
+					end):catch(warn)
 
 					Promise.new(function()
 						self.vpfModel = VpModelModule.new(self.vpRef:getValue(), self.camera)
