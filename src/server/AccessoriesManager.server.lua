@@ -4,6 +4,7 @@ local RemoteEvents = game.ReplicatedStorage.RemoteEvents
 -- Dependencies --
 local Constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local PlayerController = require(game.ReplicatedStorage.Shared.Modules.PlayerController)
+local Promise = require(game.ReplicatedStorage.Packages.Promise)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local TableUtils = Utils.TableUtils
 
@@ -98,7 +99,32 @@ local function SaveBodyCustomizations(player, data)
 	-- description.DepthScale = bodyScale.BodyDepthScale
 	-- description.HeadScale = bodyScale.HeadScale
 
-	description.Face = selectedFace or 0
+	if selectedFace then
+		TableUtils:apply(character:GetChildren(), function(child)
+			if not child:IsA("Accessory") then
+				return
+			end
+
+			local handle = child:FindFirstChild("Handle")
+			if not handle then
+				return
+			end
+
+			if handle:FindFirstChild("FaceCenterAttachment") then
+				child:Destroy()
+			end
+		end)
+		if selectedFace.assetType == Constants.FACE_TYPE.FACE then
+			description.Face = selectedFace.assetId or 0
+			description.FaceAccessory = ""
+		else
+			description.FaceAccessory = selectedFace.assetId or 0
+			description.Face = 0
+		end
+	else
+		description.FaceAccessory = ""
+		description.Face = 0
+	end
 
 	humanoid:ApplyDescription(description)
 
@@ -111,6 +137,31 @@ local function SaveBodyCustomizations(player, data)
 			PlayerController.scalePart(character, partName, scale)
 		end
 	end
+
+	Promise.new(function(_, reject)
+		local head = character:FindFirstChild("Head")
+
+		if not head then
+			reject("Head not found")
+			return
+		end
+
+		local face = head:FindFirstChild("face")
+		if not face then
+			reject("Face not found")
+		end
+
+		if not selectedFace then
+			face.Transparency = 0
+			return
+		end
+
+		if selectedFace.assetType == Constants.FACE_TYPE.FACE then
+			face.Transparency = 0
+		else
+			face.Transparency = 1
+		end
+	end):catch(warn)
 end
 
 local function OnAccessoryManagerEvent(player, eventName, eventData)

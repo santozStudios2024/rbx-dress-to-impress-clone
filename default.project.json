@@ -18,6 +18,11 @@
       }
     },
 
+    "ReplicatedFirst": {
+      "$className": "ReplicatedFirst",
+      "$path": "./ReplicatedFirst"
+    },
+
     "ServerScriptService": {
       "Server": {
         "$path": "src/server"
