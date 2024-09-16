@@ -82,6 +82,11 @@ function PlayerController.resetDescription(player)
 		return
 	end
 
+	local originalHipHeight = humanoid:FindFirstChild("OriginalHipHeight")
+	if originalHipHeight then
+		humanoid.HipHeight = originalHipHeight.Value
+	end
+
 	local description: HumanoidDescription = humanoid:GetAppliedDescription()
 
 	for _, prop in pairs(Constants.BODY_COLORS) do
@@ -210,6 +215,23 @@ function PlayerController.scalePart(character, partName, scaleFactor)
 			child.Scale = child.Scale * scaleFactor
 		end
 	end
+end
+
+function PlayerController.scaleHipHeight(character, scaleFactor)
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid then
+		return
+	end
+
+	local originalHipHeight = humanoid:FindFirstChild("OriginalHipHeight")
+	if not originalHipHeight then
+		originalHipHeight = Instance.new("NumberValue")
+		originalHipHeight.Name = "OriginalHipHeight"
+		originalHipHeight.Parent = humanoid
+		originalHipHeight.Value = humanoid.HipHeight
+	end
+
+	humanoid.HipHeight = originalHipHeight.Value * scaleFactor
 end
 
 function PlayerController.cloneCharacter(character)

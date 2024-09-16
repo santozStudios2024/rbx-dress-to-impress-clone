@@ -445,6 +445,12 @@ function AvatarVpComponent:render()
 						end
 					end
 
+					if scaling.RightLegScale >= scaling.LeftLegScale then
+						PlayerController.scaleHipHeight(self.dummyModel, scaling.RightLegScale)
+					else
+						PlayerController.scaleHipHeight(self.dummyModel, scaling.LeftLegScale)
+					end
+
 					Promise.new(function(_, reject)
 						local head = self.dummyModel:FindFirstChild("Head")
 
