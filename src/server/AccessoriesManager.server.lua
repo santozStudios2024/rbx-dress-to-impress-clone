@@ -138,6 +138,12 @@ local function SaveBodyCustomizations(player, data)
 		end
 	end
 
+	if bodyScale.RightLegScale >= bodyScale.LeftLegScale then
+		PlayerController.scaleHipHeight(character, bodyScale.RightLegScale)
+	else
+		PlayerController.scaleHipHeight(character, bodyScale.LeftLegScale)
+	end
+
 	Promise.new(function(_, reject)
 		local head = character:FindFirstChild("Head")
 
