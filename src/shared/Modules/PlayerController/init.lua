@@ -215,6 +215,68 @@ function PlayerController.scalePart(character, partName, scaleFactor)
 			child.Scale = child.Scale * scaleFactor
 		end
 	end
+
+	PlayerController.scaleAccessories(character, partName, scaleFactor)
+end
+
+function PlayerController.scaleAccessories(character, partName, scaleFactor)
+	local part = character:FindFirstChild(partName)
+
+	if not part then
+		return
+	end
+
+	local originalSize = part:FindFirstChild("OriginalSize") and part:FindFirstChild("OriginalSize").Value or part.Size
+
+	for _, accessory in ipairs(character:GetChildren()) do
+		if not accessory:IsA("Accessory") then
+			continue
+		end
+
+		if not accessory:FindFirstChild("Handle") then
+			continue
+		end
+
+		local handle = accessory.Handle
+		local originalSizeValue = handle:FindFirstChild("OriginalSize")
+		if not originalSizeValue then
+			originalSizeValue = Instance.new("Vector3Value")
+			originalSizeValue.Name = "OriginalSize"
+			originalSizeValue.Parent = handle
+			originalSizeValue.Value = handle.Size
+		end
+
+		for _, child in ipairs(handle:GetChildren()) do
+			if not child:IsA("Attachment") or not part:FindFirstChild(child.Name) then
+				continue
+			end
+
+			handle.Size = originalSizeValue.Value * scaleFactor
+
+			for _, handleChild in ipairs(handle:GetChildren()) do
+				if handleChild:IsA("Attachment") then
+					local originalPos = handle:FindFirstChild("OriginalPosition")
+					if not originalPos then
+						originalPos = Instance.new("Vector3Value")
+						originalPos.Name = "OriginalSize"
+						originalPos.Parent = handle
+						originalPos.Value = handleChild.Position
+					end
+					handleChild.Position = originalPos.Value * scaleFactor
+				elseif handleChild:IsA("SpecialMesh") then
+					handleChild.Scale = handleChild.Scale * scaleFactor
+				end
+			end
+
+			local partAttachment = part:FindFirstChild(child.Name)
+			if partAttachment and partAttachment:IsA("Attachment") then
+				local sizeDifference = (part.Size - originalSize) / 2
+				local newPosition = handle.Position + sizeDifference
+
+				handle.CFrame = CFrame.new(newPosition) * handle.CFrame.Rotation
+			end
+		end
+	end
 end
 
 function PlayerController.scaleHipHeight(character, scaleFactor)
