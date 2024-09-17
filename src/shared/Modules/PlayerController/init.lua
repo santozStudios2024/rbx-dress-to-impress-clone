@@ -216,7 +216,7 @@ function PlayerController.scalePart(character, partName, scaleFactor)
 		end
 	end
 
-	PlayerController.scaleAccessories(character, partName, scaleFactor)
+	-- PlayerController.scaleAccessories(character, partName, scaleFactor)
 end
 
 function PlayerController.scaleAccessories(character, partName, scaleFactor)
