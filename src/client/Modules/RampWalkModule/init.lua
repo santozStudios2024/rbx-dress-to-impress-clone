@@ -73,8 +73,6 @@ function RampWalkModule.startWalk(playerData, getPoseAnim)
 
 		model:PivotTo(startPos.CFrame)
 
-		RampWalkModule.tweenCamera(model, true)
-
 		model.Parent = rampFolder.Models
 
 		humanoid:MoveTo(posingPos.CFrame.Position)
@@ -170,9 +168,8 @@ function RampWalkModule.tweenCamera(model, enable)
 					frequency = 1,
 					dampingRatio = 4,
 				}))
-
-				return Promise.delay(4)
 			end)
+			:andThenCall(Promise.delay, 4)
 			:andThen(function()
 				local cameraEndPos = rampFolder.CameraPositions.EndPos
 
