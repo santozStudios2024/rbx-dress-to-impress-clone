@@ -259,7 +259,7 @@ function PlayerController.initializeAccessory(character, accessory)
 	local part = children[index]
 	local scaleFactor = PlayerController.getScalingFactor(part)
 
-	PlayerController.scaleAccessory(part, accessory, scaleFactor, false)
+	PlayerController.scaleAccessory(character, part, accessory, scaleFactor, false)
 end
 
 function PlayerController.scaleAccessories(character, partName, scaleFactor)
@@ -293,11 +293,11 @@ function PlayerController.scaleAccessories(character, partName, scaleFactor)
 			continue
 		end
 
-		PlayerController.scaleAccessory(part, accessory, scaleFactor, true)
+		PlayerController.scaleAccessory(character, part, accessory, scaleFactor, true)
 	end
 end
 
-function PlayerController.scaleAccessory(part, accessory, scaleFactor, addMultiplier)
+function PlayerController.scaleAccessory(character, part, accessory, scaleFactor, addMultiplier)
 	if not accessory:FindFirstChild("Handle") then
 		return
 	end
@@ -307,6 +307,12 @@ function PlayerController.scaleAccessory(part, accessory, scaleFactor, addMultip
 		return
 	end
 
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid then
+		return
+	end
+
+	accessory.Parent = nil
 	for _, child in ipairs(handle:GetChildren()) do
 		if not child:IsA("Attachment") or not part:FindFirstChild(child.Name) then
 			continue
@@ -333,11 +339,16 @@ function PlayerController.scaleAccessory(part, accessory, scaleFactor, addMultip
 
 				local multiplier = 1
 				if part.Name == "Head" and handleChild.Name == "HatAttachment" then
-					multiplier = addMultiplier and 1.4 or 1
+					multiplier = addMultiplier and 1.8 or 1
 				else
 					multiplier = 1
 				end
-				handleChild.Position = originalPos.Value * scaleFactor * multiplier
+
+				handleChild.Position = Vector3.new(
+					originalPos.Value.X,
+					originalPos.Value.Y * multiplier,
+					originalPos.Value.Z
+				) * scaleFactor
 			elseif handleChild:IsA("SpecialMesh") then
 				originalSizeValue = handleChild:FindFirstChild("OriginalSize")
 				if not originalSizeValue then
@@ -390,9 +401,18 @@ function PlayerController.scaleAccessory(part, accessory, scaleFactor, addMultip
 
 		local partAttachment = part:FindFirstChild(child.Name)
 		if partAttachment and partAttachment:IsA("Attachment") then
-			handle.CFrame = part.CFrame * partAttachment.CFrame
+			local multiplier = 1
+			if part.Name == "Head" and partAttachment.Name == "HatAttachment" then
+				multiplier = addMultiplier and 1.8 or 1
+			else
+				multiplier = 1
+			end
+
+			handle.CFrame = part.CFrame * partAttachment.CFrame * CFrame.new(0, 0, multiplier)
 		end
 	end
+
+	humanoid:AddAccessory(accessory)
 end
 
 function PlayerController.scaleHipHeight(character, scaleFactor)
