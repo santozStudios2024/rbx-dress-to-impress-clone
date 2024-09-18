@@ -1,3 +1,6 @@
+local CollectionService = game:GetService("CollectionService")
+-- Services --
+
 -- Variables --
 local RemoteEvents = game.ReplicatedStorage.RemoteEvents
 
@@ -60,6 +63,8 @@ local function ToggleAccessory(player, data)
 		local accessoryClone = accessory:Clone()
 		accessoryClone.Parent = nil
 
+		CollectionService:RemoveTag(accessoryClone, Constants.TAGS.ACCESSORY)
+
 		TableUtils:apply(accessoryClone:GetDescendants(), function(child)
 			if not child:IsA("BasePart") then
 				return
@@ -69,6 +74,8 @@ local function ToggleAccessory(player, data)
 		end)
 
 		humanoid:AddAccessory(accessoryClone)
+
+		PlayerController.initializeAccessory(character, accessoryClone)
 	end
 end
 
@@ -111,9 +118,15 @@ local function SaveBodyCustomizations(player, data)
 			end
 
 			if handle:FindFirstChild("FaceCenterAttachment") then
+				description.FaceAccessory = ""
+				humanoid:ApplyDescription(description)
+
+				task.wait()
+
 				child:Destroy()
 			end
 		end)
+
 		if selectedFace.assetType == Constants.FACE_TYPE.FACE then
 			description.Face = selectedFace.assetId or 0
 			description.FaceAccessory = ""

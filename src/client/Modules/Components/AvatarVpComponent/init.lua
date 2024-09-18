@@ -57,40 +57,133 @@ local PARTS_TO_SCALE = {
 }
 local AutomaticRotationSpeed = 30
 local ManualRotationSpeed = 180
--- local ACCESSORY_INDEX = {
--- 	[2] = "GraphicTShirt",
--- 	[8] = "HatAccessory",
--- 	[11] = "Shirt",
--- 	[12] = "Pants",
--- 	[17] = "Head",
--- 	[18] = "Face",
--- 	[24] = "Animation",
--- 	[27] = "Torso",
--- 	[28] = "RightArm",
--- 	[29] = "LeftArm",
--- 	[30] = "LeftLeg",
--- 	[31] = "RightLeg",
--- 	[41] = "HairAccessory",
--- 	[42] = "FaceAccessory",
--- 	[43] = "NeckAccessory",
--- 	[44] = "ShouldersAccessory",
--- 	[45] = "FrontAccessory",
--- 	[46] = "BackAccessory",
--- 	[47] = "WaistAccessory",
--- 	[64] = Enum.AccessoryType.TShirt,
--- 	[65] = Enum.AccessoryType.Shirt,
--- 	[66] = Enum.AccessoryType.Pants,
--- 	[67] = Enum.AccessoryType.Jacket,
--- 	[68] = Enum.AccessoryType.Sweater,
--- 	[69] = Enum.AccessoryType.Shorts,
--- 	[70] = Enum.AccessoryType.LeftShoe,
--- 	[71] = Enum.AccessoryType.RightShoe,
--- 	[72] = Enum.AccessoryType.DressSkirt,
--- 	[74] = Enum.AccessoryType.Eyebrow,
--- 	[75] = Enum.AccessoryType.Eyelash,
--- }
 
 local AvatarVpComponent = Roact.Component:extend("AvatarVpComponent")
+
+function AvatarVpComponent:updateColor(selectedColor)
+	local humanoid = self.dummyModel:FindFirstChildOfClass("Humanoid")
+
+	return Promise.new(function(resolve)
+		if not humanoid then
+			return
+		end
+		local description: HumanoidDescription = humanoid:GetAppliedDescription()
+
+		for _, prop in pairs(Constants.BODY_COLORS) do
+			description[prop] = selectedColor
+		end
+
+		humanoid:ApplyDescription(description)
+
+		resolve()
+	end)
+end
+
+function AvatarVpComponent:updateScaling(scaling)
+	for partToScale, scale in pairs(scaling) do
+		if not PARTS_TO_SCALE[partToScale] then
+			continue
+		end
+
+		for _, partName in ipairs(PARTS_TO_SCALE[partToScale]) do
+			PlayerController.scalePart(self.dummyModel, partName, scale)
+		end
+	end
+
+	if scaling.RightLegScale >= scaling.LeftLegScale then
+		PlayerController.scaleHipHeight(self.dummyModel, scaling.RightLegScale)
+	else
+		PlayerController.scaleHipHeight(self.dummyModel, scaling.LeftLegScale)
+	end
+
+	return Promise.new(function()
+		self.vpfModel = VpModelModule.new(self.vpRef:getValue(), self.camera)
+
+		self.vpfModel:SetModel(self.dummyModel)
+
+		local theta = math.rad(180)
+		local orientation = CFrame.fromEulerAnglesYXZ(math.rad(0), theta, 0)
+		local distance = self.vpfModel:GetFitDistance(self.dummyModel:GetPivot().Position)
+
+		local finalCF = self.dummyModel:GetPivot() * CFrame.new(0, 0, -distance) * orientation
+		if self.props.offset then
+			finalCF = finalCF * self.props.offset
+		end
+		self.camera.CFrame = finalCF
+	end):catch(warn)
+end
+
+function AvatarVpComponent:updateFace(selectedFace)
+	local humanoid = self.dummyModel:FindFirstChildOfClass("Humanoid")
+
+	Promise.new(function(_, reject)
+		local head = self.dummyModel:FindFirstChild("Head")
+
+		if not head then
+			reject("Head not found")
+			return
+		end
+
+		local face = head:FindFirstChild("face")
+		if not face then
+			reject("Face not found")
+		end
+
+		if not selectedFace then
+			face.Transparency = 0
+			return
+		end
+
+		if selectedFace.assetType == Constants.FACE_TYPE.FACE then
+			face.Transparency = 0
+		else
+			face.Transparency = 1
+		end
+	end):catch(warn)
+
+	return Promise.new(function(resolve)
+		if not humanoid then
+			resolve()
+			return
+		end
+		local description: HumanoidDescription = humanoid:GetAppliedDescription()
+		if selectedFace then
+			TableUtils:apply(self.dummyModel:GetChildren(), function(child)
+				if not child:IsA("Accessory") then
+					return
+				end
+
+				local handle = child:FindFirstChild("Handle")
+				if not handle then
+					return
+				end
+
+				if handle:FindFirstChild("FaceCenterAttachment") then
+					description.FaceAccessory = ""
+					humanoid:ApplyDescription(description)
+
+					task.wait()
+
+					child:Destroy()
+				end
+			end)
+
+			if selectedFace.assetType == Constants.FACE_TYPE.FACE then
+				description.Face = selectedFace.assetId or 0
+				description.FaceAccessory = ""
+			else
+				description.FaceAccessory = selectedFace.assetId or 0
+				description.Face = 0
+			end
+		else
+			description.FaceAccessory = ""
+			description.Face = 0
+		end
+
+		humanoid:ApplyDescription(description)
+		resolve()
+	end)
+end
 
 function AvatarVpComponent:updateVp()
 	if not self.props.productsInfo then
@@ -352,8 +445,41 @@ function AvatarVpComponent:render()
 		render = function(theme)
 			return createElement("ViewportFrame", {
 				AnchorPoint = self.props.AnchorPoint,
-				BackgroundTransparency = 1,
-				BorderSizePixel = 0,
+				BackgroundTransparency = self.props.colorBind.color:map(function(selectedColor)
+					if self.props.resetScreen then
+						return 1
+					end
+					if not self.dummyModel then
+						return 1
+					end
+
+					self:updateColor(selectedColor):andThen(function()
+						local scaling = self.props.scaleBind.scale:getValue()
+
+						return self:updateScaling(scaling)
+					end)
+
+					return 1
+				end),
+				BorderSizePixel = self.props.scaleBind.scale:map(function(scaling)
+					if self.props.resetScreen then
+						return 0
+					end
+					if not self.dummyModel then
+						return 0
+					end
+					local humanoid = self.dummyModel:FindFirstChildOfClass("Humanoid")
+
+					if humanoid then
+						local description: HumanoidDescription = humanoid:GetAppliedDescription()
+
+						humanoid:ApplyDescription(description)
+					end
+
+					self:updateScaling(scaling)
+
+					return 0
+				end),
 				Position = self.props.Position,
 				Size = self.props.Size,
 				[Roact.Ref] = self.vpRef,
@@ -371,11 +497,7 @@ function AvatarVpComponent:render()
 					self.mousePressed = true
 					self.manullyRotating = true
 				end,
-				Visible = Roact.joinBindings({
-					self.props.colorBind.color,
-					self.props.scaleBind.scale,
-					self.props.faceBind.face,
-				}):map(function(values)
+				Visible = self.props.faceBind.face:map(function(selectedFace)
 					if self.props.resetScreen then
 						return
 					end
@@ -383,114 +505,11 @@ function AvatarVpComponent:render()
 						return
 					end
 
-					local selectedColor = values[1]
-					local scaling = values[2]
-					local selectedFace = values[3]
+					self:updateFace(selectedFace):andThen(function()
+						local scaling = self.props.scaleBind.scale:getValue()
 
-					local humanoid = self.dummyModel:FindFirstChildOfClass("Humanoid")
-
-					if humanoid then
-						local description: HumanoidDescription = humanoid:GetAppliedDescription()
-
-						for _, prop in pairs(Constants.BODY_COLORS) do
-							description[prop] = selectedColor
-						end
-
-						-- description.HeightScale = scaling.BodyHeightScale
-						-- description.WidthScale = scaling.BodyWidthScale
-						-- description.DepthScale = scaling.BodyDepthScale
-						-- description.HeadScale = scaling.HeadScale
-
-						-- description.ProportionScale = 0.9
-						-- description.BodyTypeScale = 0.5
-						-- description.Face = selectedFace or 0
-						if selectedFace then
-							TableUtils:apply(self.dummyModel:GetChildren(), function(child)
-								if not child:IsA("Accessory") then
-									return
-								end
-
-								local handle = child:FindFirstChild("Handle")
-								if not handle then
-									return
-								end
-
-								if handle:FindFirstChild("FaceCenterAttachment") then
-									child:Destroy()
-								end
-							end)
-
-							if selectedFace.assetType == Constants.FACE_TYPE.FACE then
-								description.Face = selectedFace.assetId or 0
-								description.FaceAccessory = ""
-							else
-								description.FaceAccessory = selectedFace.assetId or 0
-								description.Face = 0
-							end
-						else
-							description.FaceAccessory = ""
-							description.Face = 0
-						end
-
-						humanoid:ApplyDescription(description)
-					end
-
-					for partToScale, scale in pairs(scaling) do
-						if not PARTS_TO_SCALE[partToScale] then
-							continue
-						end
-
-						for _, partName in ipairs(PARTS_TO_SCALE[partToScale]) do
-							PlayerController.scalePart(self.dummyModel, partName, scale)
-						end
-					end
-
-					if scaling.RightLegScale >= scaling.LeftLegScale then
-						PlayerController.scaleHipHeight(self.dummyModel, scaling.RightLegScale)
-					else
-						PlayerController.scaleHipHeight(self.dummyModel, scaling.LeftLegScale)
-					end
-
-					Promise.new(function(_, reject)
-						local head = self.dummyModel:FindFirstChild("Head")
-
-						if not head then
-							reject("Head not found")
-							return
-						end
-
-						local face = head:FindFirstChild("face")
-						if not face then
-							reject("Face not found")
-						end
-
-						if not selectedFace then
-							face.Transparency = 0
-							return
-						end
-
-						if selectedFace.assetType == Constants.FACE_TYPE.FACE then
-							face.Transparency = 0
-						else
-							face.Transparency = 1
-						end
-					end):catch(warn)
-
-					Promise.new(function()
-						self.vpfModel = VpModelModule.new(self.vpRef:getValue(), self.camera)
-
-						self.vpfModel:SetModel(self.dummyModel)
-
-						local theta = math.rad(180)
-						local orientation = CFrame.fromEulerAnglesYXZ(math.rad(0), theta, 0)
-						local distance = self.vpfModel:GetFitDistance(self.dummyModel:GetPivot().Position)
-
-						local finalCF = self.dummyModel:GetPivot() * CFrame.new(0, 0, -distance) * orientation
-						if self.props.offset then
-							finalCF = finalCF * self.props.offset
-						end
-						self.camera.CFrame = finalCF
-					end):catch(warn)
+						return self:updateScaling(scaling)
+					end)
 
 					return true
 				end),
