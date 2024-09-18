@@ -29,6 +29,7 @@ local function GetAssetInfo(assetId)
 	return info
 end
 
+print("Loading Started.")
 for faceName, face in pairs(Faces) do
 	print(faceName .. " loading")
 	LoadAsset("rbxassetid://" .. face)
@@ -56,3 +57,4 @@ for _, images in pairs(ImageAssets) do
 end
 
 GameLoadingManager.gameLoaded()
+print("Game Loaded")
