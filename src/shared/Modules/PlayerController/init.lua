@@ -318,14 +318,19 @@ function PlayerController.scaleAccessory(character, part, accessory, scaleFactor
 			continue
 		end
 
-		local originalSizeValue = handle:FindFirstChild("OriginalSize")
+		local originalSizeValue = handle:FindFirstChild("OriginalScale")
 		if not originalSizeValue then
 			originalSizeValue = Instance.new("Vector3Value")
-			originalSizeValue.Name = "OriginalSize"
+			originalSizeValue.Name = "OriginalScale"
 			originalSizeValue.Parent = handle
 			originalSizeValue.Value = handle.Size
 		end
 		handle.Size = originalSizeValue.Value * scaleFactor
+
+		local originalSize = handle:FindFirstChild("OriginalSize")
+		if originalSize then
+			originalSize.Value = handle.Size
+		end
 
 		for _, handleChild in ipairs(handle:GetChildren()) do
 			if handleChild:IsA("Attachment") then
