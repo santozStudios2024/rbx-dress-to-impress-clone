@@ -1,4 +1,6 @@
+-- Services --
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 
 -- Dependencies --
 local ClientModules = script.Parent.Parent
@@ -145,6 +147,11 @@ function ColorPicker:init()
 
 	self.offset = 0
 	self:calculateIgnoreGuiOffset()
+
+	self.inputConnection = UserInputService.InputEnded:Connect(function()
+		self.selectingColor = false
+		self.selectingValue = false
+	end)
 end
 
 function ColorPicker:render()
@@ -455,6 +462,12 @@ function ColorPicker:render()
 			})
 		end,
 	})
+end
+
+function ColorPicker:willUnmount()
+	if self.inputConnection then
+		self.inputConnection:Disconnect()
+	end
 end
 
 return ColorPicker
