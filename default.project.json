@@ -39,12 +39,9 @@
     },
 
     "Workspace": {
+      "$ignoreUnknownInstances": true,
       "$properties": {
         "FilteringEnabled": true
-      },
-      "World": {
-        "$className": "Folder",
-        "$path": "./World"
       }
     },
 
