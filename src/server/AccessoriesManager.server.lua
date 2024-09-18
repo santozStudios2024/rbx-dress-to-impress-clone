@@ -75,6 +75,8 @@ local function ToggleAccessory(player, data)
 
 		humanoid:AddAccessory(accessoryClone)
 
+		task.wait()
+
 		PlayerController.initializeAccessory(character, accessoryClone)
 	end
 end
