@@ -197,6 +197,9 @@ function BodyCustomizationScreen:render()
 								return
 							end
 
+							if self.props.Input.backButtonClicked then
+								self.props.Input.backButtonClicked()
+							end
 							self.props.Input.toggleBodyPad(false)
 							HudGuiController.closeMenu("BodyCustomizationScreen")
 						end,
