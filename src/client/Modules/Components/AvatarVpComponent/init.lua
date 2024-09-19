@@ -19,9 +19,9 @@ local TableUtils = Utils.TableUtils
 local createElement = Roact.createElement
 local roactEvents = Roact.Event
 local localPlayer = Players.LocalPlayer
-local modelData = {
-	userId = localPlayer.UserId,
-}
+-- local modelData = {
+-- 	userId = localPlayer.UserId,
+-- }
 local assets = game.ReplicatedStorage.Shared.Assets
 local animate = assets.Animate
 
@@ -195,145 +195,123 @@ function AvatarVpComponent:updateVp()
 
 	self.updateLoading(true)
 
-	Promise.new(function(resolve, reject)
+	Promise.new(function(resolve)
 		-- Create Player Avatar --
-		return Promise.new(function(modelFound, _)
-			if self.props.userId ~= modelData.userId then
-				if not self.props.userId then
-					self.props.userId = localPlayer.UserId
-				end
-				modelData.userId = self.props.userId
-				modelData.model = Players:CreateHumanoidModelFromUserId(modelData.userId)
-			end
+		local clone = PlayerController.cloneCharacter(localPlayer.Character)
 
-			if not modelData.model then
-				if not localPlayer.Character then
-					localPlayer.CharacterAdded:Wait()
-				end
-				modelData.model = localPlayer.Character
-			end
-
-			local clone = PlayerController.cloneCharacter(modelData.model)
-
-			modelFound(clone)
-		end)
-			:andThen(function(model)
-				model.PrimaryPart = model.UpperTorso
-
-				if self.props.focusPart and model:FindFirstChild(self.props.focusPart) then
-					model.PrimaryPart = model:FindFirstChild(self.props.focusPart)
-				end
-
-				-- Add Emote Player --
-				if model:FindFirstChild("Animate") then
-					model:FindFirstChild("Animate"):Destroy()
-				end
-				if self.props.canAnimate then
-					local newAnimate = animate:Clone()
-
-					newAnimate.Parent = model
-					newAnimate.Disabled = false
-				end
-
-				self.dummyModel = model
-
-				local vp = self.vpRef:getValue()
-
-				if not model then
-					return
-				end
-				if not vp then
-					return
-				end
-
-				self.camera = vp.CurrentCamera
-				if not self.camera then
-					self.camera = Instance.new("Camera")
-					self.camera.Parent = vp
-					self.camera.CameraType = Enum.CameraType.Scriptable
-					self.camera.DiagonalFieldOfView = 20
-					self.camera.FieldOfView = 20
-				end
-
-				-- camera.CFrame = CFrame.new(1000, 1000, 1000)
-				vp.CurrentCamera = self.camera
-				vp.WorldModel:ClearAllChildren()
-
-				model.Parent = vp.WorldModel
-
-				self.vpfModel = VpModelModule.new(vp, self.camera)
-
-				self.vpfModel:SetModel(model)
-
-				local theta = math.rad(180)
-				local orientation = CFrame.fromEulerAnglesYXZ(math.rad(0), theta, 0)
-				local distance = self.vpfModel:GetFitDistance(model:GetPivot().Position)
-
-				local finalCF = model:GetPivot() * CFrame.new(0, 0, -distance) * orientation
-				if self.props.offset then
-					finalCF = finalCF * self.props.offset
-				end
-				self.camera.CFrame = finalCF
-
-				resolve()
-
-				local humanoid = self.dummyModel:FindFirstChildOfClass("Humanoid")
-				if not humanoid then
-					return
-				end
-
-				local description: HumanoidDescription = humanoid:GetAppliedDescription()
-
-				local scalingParts = {
-					HeadScale = "Head",
-					TorsoScale = "UpperTorso",
-					LeftArmScale = "LeftUpperArm",
-					RightArmScale = "RightUpperArm",
-					LeftLegScale = "LeftUpperLeg",
-					RightLegScale = "RightUpperLeg",
-				}
-
-				local faceData
-				if description.FaceAccessory ~= "" then
-					faceData = {
-						assetId = tonumber(description.FaceAccessory),
-						assetType = Constants.FACE_TYPE.FACE_ACCESSORY,
-					}
-				else
-					faceData = {
-						assetId = description.Face,
-						assetType = Constants.FACE_TYPE.FACE,
-					}
-				end
-
-				local bodyScale = {}
-				for prop, partName in pairs(scalingParts) do
-					local part = self.dummyModel:FindFirstChild(partName)
-					if not part then
-						continue
-					end
-
-					local originalSizeValue = part:FindFirstChild("OriginalSize")
-					if not originalSizeValue then
-						bodyScale[prop] = 1
-					end
-
-					local scaling = (part.Size / originalSizeValue.Value).X
-					bodyScale[prop] = scaling
-				end
-
-				self.props.resetScreen = true
-
-				self.props.scaleBind.update(bodyScale)
-				self.props.faceBind.update(faceData)
-				self.props.colorBind.update(description.HeadColor)
-
-				self.props.resetScreen = false
-			end)
-			:catch(function(err)
-				reject(err)
-			end)
+		resolve(clone)
 	end)
+		:andThen(function(model)
+			model.PrimaryPart = model.UpperTorso
+
+			if self.props.focusPart and model:FindFirstChild(self.props.focusPart) then
+				model.PrimaryPart = model:FindFirstChild(self.props.focusPart)
+			end
+
+			-- Add Emote Player --
+			if model:FindFirstChild("Animate") then
+				model:FindFirstChild("Animate"):Destroy()
+			end
+			if self.props.canAnimate then
+				local newAnimate = animate:Clone()
+
+				newAnimate.Parent = model
+				newAnimate.Disabled = false
+			end
+
+			self.dummyModel = model
+
+			local vp = self.vpRef:getValue()
+
+			if not model then
+				return
+			end
+			if not vp then
+				return
+			end
+
+			self.camera = vp.CurrentCamera
+			if not self.camera then
+				self.camera = Instance.new("Camera")
+				self.camera.Parent = vp
+				self.camera.CameraType = Enum.CameraType.Scriptable
+				self.camera.DiagonalFieldOfView = 20
+				self.camera.FieldOfView = 20
+			end
+
+			-- camera.CFrame = CFrame.new(1000, 1000, 1000)
+			vp.CurrentCamera = self.camera
+			vp.WorldModel:ClearAllChildren()
+
+			model.Parent = vp.WorldModel
+
+			self.vpfModel = VpModelModule.new(vp, self.camera)
+
+			self.vpfModel:SetModel(model)
+
+			local theta = math.rad(180)
+			local orientation = CFrame.fromEulerAnglesYXZ(math.rad(0), theta, 0)
+			local distance = self.vpfModel:GetFitDistance(model:GetPivot().Position)
+
+			local finalCF = model:GetPivot() * CFrame.new(0, 0, -distance) * orientation
+			if self.props.offset then
+				finalCF = finalCF * self.props.offset
+			end
+			self.camera.CFrame = finalCF
+
+			local humanoid = self.dummyModel:FindFirstChildOfClass("Humanoid")
+			if not humanoid then
+				return
+			end
+
+			local description: HumanoidDescription = humanoid:GetAppliedDescription()
+
+			local scalingParts = {
+				HeadScale = "Head",
+				TorsoScale = "UpperTorso",
+				LeftArmScale = "LeftUpperArm",
+				RightArmScale = "RightUpperArm",
+				LeftLegScale = "LeftUpperLeg",
+				RightLegScale = "RightUpperLeg",
+			}
+
+			local faceData
+			if description.FaceAccessory ~= "" then
+				faceData = {
+					assetId = tonumber(description.FaceAccessory),
+					assetType = Constants.FACE_TYPE.FACE_ACCESSORY,
+				}
+			else
+				faceData = {
+					assetId = description.Face,
+					assetType = Constants.FACE_TYPE.FACE,
+				}
+			end
+
+			local bodyScale = {}
+			for prop, partName in pairs(scalingParts) do
+				local part = self.dummyModel:FindFirstChild(partName)
+				if not part then
+					continue
+				end
+
+				local originalSizeValue = part:FindFirstChild("OriginalSize")
+				if not originalSizeValue then
+					bodyScale[prop] = 1
+				end
+
+				local scaling = (part.Size / originalSizeValue.Value).X
+				bodyScale[prop] = scaling
+			end
+
+			self.props.resetScreen = true
+
+			self.props.scaleBind.update(bodyScale)
+			self.props.faceBind.update(faceData)
+			self.props.colorBind.update(description.HeadColor)
+
+			self.props.resetScreen = false
+		end)
 		:finally(function()
 			self.updateLoading(false)
 		end)
