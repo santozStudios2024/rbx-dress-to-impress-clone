@@ -7,8 +7,10 @@ local CameraManagerModule = require(ClientModule.CameraManagerModule)
 local PlayerController = require(game.ReplicatedStorage.Shared.Modules.PlayerController)
 local Janitor = require(game.ReplicatedStorage.Packages.Janitor)
 local Flipper = require(game.ReplicatedStorage.Packages.flipper)
+local Constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local TableUtils = Utils.TableUtils
+local CollisionGroupUtils = Utils.CollisionGroupUtils
 
 -- Variables --
 local assets = game.ReplicatedStorage.Shared.Assets
@@ -35,19 +37,22 @@ function RampWalkModule.startWalk(playerData, getPoseAnim)
 			return
 		end
 
-		local clone = PlayerController.cloneCharacter(character)
-
-		resolve(clone)
-	end)
-
-	promise:andThen(function(model)
-		TableUtils:apply(model:GetDescendants(), function(part)
+		TableUtils:apply(character:GetDescendants(), function(part)
 			if not part:IsA("BasePart") then
 				return
 			end
 
 			part.Anchored = false
 		end)
+
+		task.wait()
+
+		local clone = PlayerController.cloneCharacter(character)
+
+		resolve(clone)
+	end)
+
+	promise:andThen(function(model)
 		local humanoid: Humanoid = model:FindFirstChildOfClass("Humanoid")
 		if humanoid then
 			humanoid.WalkSpeed = 5
@@ -78,6 +83,8 @@ function RampWalkModule.startWalk(playerData, getPoseAnim)
 		model.Parent = rampFolder.Models
 
 		humanoid:MoveTo(posingPos.CFrame.Position)
+
+		CollisionGroupUtils.setCollisionGroup(model, Constants.CG_IDS.CATWALK_MODEL)
 
 		local poseAnimChangedConnection
 		return Promise.fromEvent(humanoid.MoveToFinished)
