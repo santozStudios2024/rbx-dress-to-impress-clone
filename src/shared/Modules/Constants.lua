@@ -23,6 +23,12 @@ local Constants = {
 		ACCESSORY = "Accessory",
 		BODY_PAD = "BodyPad",
 	},
+	CG_IDS = {
+		PLAYER = "Player",
+		CATWALK_MODEL = "CatWalkModel",
+		RAMP = "Ramp",
+		DEFAULT = "Default",
+	},
 	BODY_COLORS = {
 		HEAD_COLOR3 = "HeadColor",
 		TORSO_COLOR3 = "TorsoColor",
