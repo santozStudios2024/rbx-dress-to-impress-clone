@@ -193,14 +193,14 @@ function BodyCustomizationScreen:render()
 						TextScaled = true,
 						FontFace = theme.fonts.bold,
 						[raoctEvents.Activated] = function()
-							if not self.props.Input.toggleBodyPad then
-								return
-							end
-
 							if self.props.Input.backButtonClicked then
 								self.props.Input.backButtonClicked()
 							end
-							self.props.Input.toggleBodyPad(false)
+
+							if not self.props.Input.toggleBodyPad then
+								self.props.Input.toggleBodyPad(false)
+							end
+
 							HudGuiController.closeMenu("BodyCustomizationScreen")
 						end,
 					}, {
@@ -227,11 +227,14 @@ function BodyCustomizationScreen:render()
 						TextScaled = true,
 						FontFace = theme.fonts.bold,
 						[raoctEvents.Activated] = function()
-							if not self.props.Input.toggleBodyPad then
-								return
+							if self.props.Input.backButtonClicked then
+								self.props.Input.backButtonClicked()
 							end
 
-							self.props.Input.toggleBodyPad(false)
+							if not self.props.Input.toggleBodyPad then
+								self.props.Input.toggleBodyPad(false)
+							end
+
 							HudGuiController.closeMenu("BodyCustomizationScreen")
 
 							self:saveCustomization()
