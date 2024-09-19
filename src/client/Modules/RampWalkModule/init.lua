@@ -7,8 +7,10 @@ local CameraManagerModule = require(ClientModule.CameraManagerModule)
 local PlayerController = require(game.ReplicatedStorage.Shared.Modules.PlayerController)
 local Janitor = require(game.ReplicatedStorage.Packages.Janitor)
 local Flipper = require(game.ReplicatedStorage.Packages.flipper)
+local Constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local TableUtils = Utils.TableUtils
+local CollisionGroupUtils = Utils.CollisionGroupUtils
 
 -- Variables --
 local assets = game.ReplicatedStorage.Shared.Assets
@@ -81,6 +83,8 @@ function RampWalkModule.startWalk(playerData, getPoseAnim)
 		model.Parent = rampFolder.Models
 
 		humanoid:MoveTo(posingPos.CFrame.Position)
+
+		CollisionGroupUtils.setCollisionGroup(model, Constants.CG_IDS.CATWALK_MODEL)
 
 		local poseAnimChangedConnection
 		return Promise.fromEvent(humanoid.MoveToFinished)
