@@ -197,7 +197,7 @@ function BodyCustomizationScreen:render()
 								self.props.Input.backButtonClicked()
 							end
 
-							if not self.props.Input.toggleBodyPad then
+							if self.props.Input.toggleBodyPad then
 								self.props.Input.toggleBodyPad(false)
 							end
 
@@ -231,7 +231,7 @@ function BodyCustomizationScreen:render()
 								self.props.Input.backButtonClicked()
 							end
 
-							if not self.props.Input.toggleBodyPad then
+							if self.props.Input.toggleBodyPad then
 								self.props.Input.toggleBodyPad(false)
 							end
 
