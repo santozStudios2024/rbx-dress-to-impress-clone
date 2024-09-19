@@ -28,6 +28,11 @@ function BodyPadGui:openBodyPadMenu(customization)
 
 	HudGuiController.openMenu("BodyCustomizationScreen", {
 		toggleBodyPad = self.props.Input.toggleBodyPad,
+		backButtonClicked = function()
+			self.props.Visible = true
+
+			self:setState({})
+		end,
 		customization = customization,
 	})
 
