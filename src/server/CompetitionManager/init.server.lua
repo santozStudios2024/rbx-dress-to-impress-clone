@@ -228,7 +228,7 @@ Players.PlayerRemoving:Connect(onPlayerRemoved)
 Players.PlayerAdded:Connect(onPlayerAdded)
 
 currentThemeData = {
-	theme = "Wild West",
+	theme = "Demon",
 }
 
 validateCompetitionSettings()
