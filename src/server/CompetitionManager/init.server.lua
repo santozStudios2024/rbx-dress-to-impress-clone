@@ -196,7 +196,7 @@ intermission = function()
 			.resolve()
 			:andThen(function()
 				currentThemeData = {
-					theme = "Wild West",
+					theme = "Demon",
 				}
 
 				GameStateManager.setState({
