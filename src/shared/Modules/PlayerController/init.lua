@@ -259,7 +259,7 @@ function PlayerController.initializeAccessory(character, accessory)
 	local part = children[index]
 	local scaleFactor = PlayerController.getScalingFactor(part)
 
-	PlayerController.scaleAccessory(character, part, accessory, scaleFactor, false)
+	PlayerController.scaleAccessory(character, part, accessory, scaleFactor)
 end
 
 function PlayerController.scaleAccessories(character, partName, scaleFactor)
@@ -293,11 +293,11 @@ function PlayerController.scaleAccessories(character, partName, scaleFactor)
 			continue
 		end
 
-		PlayerController.scaleAccessory(character, part, accessory, scaleFactor, true)
+		PlayerController.scaleAccessory(character, part, accessory, scaleFactor)
 	end
 end
 
-function PlayerController.scaleAccessory(character, part, accessory, scaleFactor, addMultiplier)
+function PlayerController.scaleAccessory(character, part, accessory, scaleFactor)
 	if not accessory:FindFirstChild("Handle") then
 		return
 	end
@@ -342,18 +342,7 @@ function PlayerController.scaleAccessory(character, part, accessory, scaleFactor
 					originalPos.Value = handleChild.Position
 				end
 
-				local multiplier = 1
-				if part.Name == "Head" and handleChild.Name == "HatAttachment" then
-					multiplier = addMultiplier and 1.8 or 1
-				else
-					multiplier = 1
-				end
-
-				handleChild.Position = Vector3.new(
-					originalPos.Value.X,
-					originalPos.Value.Y * multiplier,
-					originalPos.Value.Z
-				) * scaleFactor
+				handleChild.Position = originalPos.Value * scaleFactor
 			elseif handleChild:IsA("SpecialMesh") then
 				originalSizeValue = handleChild:FindFirstChild("OriginalSize")
 				if not originalSizeValue then
@@ -401,19 +390,25 @@ function PlayerController.scaleAccessory(character, part, accessory, scaleFactor
 				offset = (originalC1.Value.Position * scaleFactor) - originalC1.Value.Position
 				motor.C1 = CFrame.new(originalC1.Value.Position + offset)
 					* CFrame.fromEulerAnglesXYZ(originalC1.Value:ToEulerAnglesXYZ())
-			end
-		end
 
-		local partAttachment = part:FindFirstChild(child.Name)
-		if partAttachment and partAttachment:IsA("Attachment") then
-			local multiplier = 1
-			if part.Name == "Head" and partAttachment.Name == "HatAttachment" then
-				multiplier = addMultiplier and 1.8 or 1
-			else
-				multiplier = 1
+				continue
 			end
 
-			handle.CFrame = part.CFrame * partAttachment.CFrame * CFrame.new(0, 0, multiplier)
+			if motor:IsA("Weld") then
+				local originalC1 = motor:FindFirstChild("OriginalC1")
+				if not originalC1 then
+					originalC1 = Instance.new("CFrameValue")
+					originalC1.Name = "OriginalC1"
+					originalC1.Parent = motor
+					originalC1.Value = motor.C1
+				end
+
+				local offset = (originalC1.Value.Position * scaleFactor) - originalC1.Value.Position
+				motor.C1 = CFrame.new(originalC1.Value.Position + offset)
+					* CFrame.fromEulerAnglesXYZ(originalC1.Value:ToEulerAnglesXYZ())
+
+				continue
+			end
 		end
 	end
 
