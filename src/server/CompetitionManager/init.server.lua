@@ -7,6 +7,7 @@ local GameStateManager = require(game.ServerScriptService.Server.Modules.GameSta
 local constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local CompetitionSettings = require(script.CompetitionSettings)
 local PlayerController = require(game.ReplicatedStorage.Shared.Modules.PlayerController)
+local Themes = require(script.Themes)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local TableUtils = Utils.TableUtils
 
@@ -196,7 +197,7 @@ intermission = function()
 			.resolve()
 			:andThen(function()
 				currentThemeData = {
-					theme = "Demon",
+					theme = Themes.getRandomTheme(), --script:GetAttribute("CurrentTheme") or "Demon",
 				}
 
 				GameStateManager.setState({
@@ -228,7 +229,7 @@ Players.PlayerRemoving:Connect(onPlayerRemoved)
 Players.PlayerAdded:Connect(onPlayerAdded)
 
 currentThemeData = {
-	theme = "Demon",
+	theme = Themes.getRandomTheme(), --script:GetAttribute("CurrentTheme") or "Demon",
 }
 
 validateCompetitionSettings()
