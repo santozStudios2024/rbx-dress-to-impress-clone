@@ -13,6 +13,7 @@ local Constants = {
 		ACCESSORY_MANAGER_EVENTS = {
 			TOGGLE_ACCESSORY = "ToggleAccessory",
 			TOGGLE_BODY_COLOR = "ToggleBodyColor",
+			TOGGLE_BODY_PART = "ToggleBodyPart",
 		},
 		COMPETITION_EVENTS = {
 			RATING = "Rating",
@@ -22,6 +23,7 @@ local Constants = {
 	TAGS = {
 		ACCESSORY = "Accessory",
 		BODY_PAD = "BodyPad",
+		BODY_PART = "BodyPart",
 	},
 	CG_IDS = {
 		PLAYER = "Player",

@@ -185,11 +185,25 @@ local function SaveBodyCustomizations(player, data)
 	end):catch(warn)
 end
 
+local function SwapBodyPart(player, data)
+	local character = player.Character
+
+	if not character then
+		return
+	end
+
+	for _, part in ipairs(data.bodyPart:GetChildren()) do
+		PlayerController.swapBodyPart(character, part)
+	end
+end
+
 local function OnAccessoryManagerEvent(player, eventName, eventData)
 	if eventName == Constants.EVENTS.ACCESSORY_MANAGER_EVENTS.TOGGLE_ACCESSORY then
 		ToggleAccessory(player, eventData)
 	elseif eventName == Constants.EVENTS.ACCESSORY_MANAGER_EVENTS.TOGGLE_BODY_COLOR then
 		SaveBodyCustomizations(player, eventData)
+	elseif eventName == Constants.EVENTS.ACCESSORY_MANAGER_EVENTS.TOGGLE_BODY_PART then
+		SwapBodyPart(player, eventData)
 	end
 end
 

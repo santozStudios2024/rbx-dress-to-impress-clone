@@ -78,15 +78,6 @@ local function onPlayerAdded(player)
 end
 
 local function onPlayerRemoved(player)
-	-- local index = TableUtils:findBy(roundSubmissions, function(outfitData)
-	-- 	return outfitData.player.UserId == player.userId
-	-- end)
-
-	-- if not index then
-	-- 	return
-	-- end
-
-	-- table.remove(roundSubmissions, index)
 	roundSubmissions[player] = nil
 end
 
