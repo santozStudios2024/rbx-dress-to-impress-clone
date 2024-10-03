@@ -559,7 +559,6 @@ function PlayerController.swapBodyPart(character, newPart)
 		end
 
 		if child:IsA("Attachment") and newPartClone:FindFirstChild(child.Name) then
-			print(child.Name .. " skipped.")
 			continue
 		end
 
@@ -576,6 +575,10 @@ function PlayerController.swapBodyPart(character, newPart)
 			motor.Part0 = newPartClone
 		elseif motor.Part1 == oldPart then
 			motor.Part1 = newPartClone
+			local offset = newPartClone:FindFirstChild("Offset")
+			if offset then
+				motor.C1 = motor.C1 * offset.Value
+			end
 		end
 	end
 
