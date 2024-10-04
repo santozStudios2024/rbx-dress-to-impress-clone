@@ -181,36 +181,38 @@ function PlayerController.scalePart(character, partName, scaleFactor)
 
 	part.Size = originalSizeValue.Value * scaleFactor
 
-	-- for _, attachment in ipairs(part:GetDescendants()) do
-	-- 	if not attachment:IsA("Attachment") then
-	-- 		continue
-	-- 	end
-
-	-- 	local originalPos = attachment:FindFirstChild("OriginalPosition")
-	-- 	if not originalPos then
-	-- 		originalPos = Instance.new("Vector3Value")
-	-- 		originalPos.Name = "OriginalPosition"
-	-- 		originalPos.Parent = attachment
-	-- 		originalPos.Value = attachment.Position
-	-- 	end
-	-- 	attachment.Position = originalPos.Value * scaleFactor
-	-- end
-
 	for _, joint in ipairs(character:GetDescendants()) do
 		if joint:IsA("Motor6D") then
+			local originalC0 = joint:FindFirstChild("OriginalC0")
+			if not originalC0 then
+				originalC0 = Instance.new("CFrameValue")
+				originalC0.Parent = joint
+				originalC0.Name = "OriginalC0"
+				originalC0.Parent = joint
+				originalC0.Value = joint.C0
+			end
+			local originalC1 = joint:FindFirstChild("OriginalC1")
+			if not originalC1 then
+				originalC1 = Instance.new("CFrameValue")
+				originalC1.Parent = joint
+				originalC1.Name = "OriginalC1"
+				originalC1.Parent = joint
+				originalC1.Value = joint.C1
+			end
+
 			if joint.Part0 == part then
-				local offset = (joint.C0.Position * scaleFactor) - joint.C0.Position
-				joint.C0 = CFrame.new(joint.C0.Position + offset)
-					* CFrame.fromEulerAnglesXYZ(joint.C0:ToEulerAnglesXYZ())
+				local offset = (originalC0.Value.Position * scaleFactor) - originalC0.Value.Position
+				joint.C0 = CFrame.new(originalC0.Value.Position + offset)
+					* CFrame.fromEulerAnglesXYZ(originalC0.Value:ToEulerAnglesXYZ())
 			elseif joint.Part1 == part then
-				local offset = (joint.C1.Position * scaleFactor) - joint.C1.Position
-				joint.C1 = CFrame.new(joint.C1.Position + offset)
-					* CFrame.fromEulerAnglesXYZ(joint.C1:ToEulerAnglesXYZ())
+				local offset = (originalC1.Value.Position * scaleFactor) - originalC1.Value.Position
+				joint.C1 = CFrame.new(originalC1.Value.Position + offset)
+					* CFrame.fromEulerAnglesXYZ(originalC1.Value:ToEulerAnglesXYZ())
 			end
 		end
 	end
 
-	for _, child in ipairs(part:GetChildren()) do
+	for _, child in ipairs(part:GetDescendants()) do
 		if child:IsA("Attachment") then
 			local originalPos = child:FindFirstChild("OriginalPosition")
 			if not originalPos then
@@ -220,8 +222,41 @@ function PlayerController.scalePart(character, partName, scaleFactor)
 				originalPos.Value = child.Position
 			end
 			child.Position = originalPos.Value * scaleFactor
-			-- elseif child:IsA("SpecialMesh") or child:IsA("MeshPart") then
-			-- 	child.Scale = child.Scale * scaleFactor
+		elseif child:IsA("SpecialMesh") then
+			child.Scale = child.Scale * scaleFactor
+		elseif child:IsA("BasePart") then
+			originalSizeValue = child:FindFirstChild("OriginalSize")
+			if not originalSizeValue then
+				originalSizeValue = Instance.new("Vector3Value")
+				originalSizeValue.Name = "OriginalSize"
+				originalSizeValue.Parent = child
+				originalSizeValue.Value = child.Size
+			end
+
+			child.Size = originalSizeValue.Value * scaleFactor
+		elseif child:IsA("Motor6D") then
+			local originalC0 = child:FindFirstChild("OriginalC0")
+			if not originalC0 then
+				originalC0 = Instance.new("CFrameValue")
+				originalC0.Parent = child
+				originalC0.Name = "OriginalC0"
+				originalC0.Parent = child
+				originalC0.Value = child.C0
+			end
+			local originalC1 = child:FindFirstChild("OriginalC1")
+			if not originalC1 then
+				originalC1 = Instance.new("CFrameValue")
+				originalC1.Parent = child
+				originalC1.Name = "OriginalC1"
+				originalC1.Parent = child
+				originalC1.Value = child.C1
+			end
+
+			if child.Part0 == part then
+				child.C0 = CFrame.new(originalC0.Value.Position * scaleFactor) * originalC0.Value.Rotation
+			else
+				child.C1 = CFrame.new(originalC1.Value.Position * scaleFactor) * originalC1.Value.Rotation
+			end
 		end
 	end
 
@@ -497,6 +532,82 @@ function PlayerController.getScalingFactor(part)
 
 	local scalingFactor = (part.Size / originalSizeValue.Value).X
 	return scalingFactor
+end
+
+function PlayerController.swapBodyPart(character, newPart)
+	if not character or not newPart then
+		return
+	end
+
+	local partName = newPart.Name
+	local oldPart = character:FindFirstChild(partName)
+
+	if not oldPart or not oldPart:IsA("BasePart") then
+		warn("The part " .. partName .. " does not exist in the player's character or isn't a valid BasePart.")
+		return
+	end
+
+	local scalingFactor = PlayerController.getScalingFactor(oldPart)
+
+	local newPartClone = newPart:Clone()
+	newPartClone.Parent = character
+	newPartClone.CanCollide = false
+	newPartClone.Anchored = false
+
+	for _, child in ipairs(oldPart:GetChildren()) do
+		if child:GetAttribute("Destroyable") then
+			continue
+		end
+
+		if child.Name == "OriginalSize" then
+			child.Value = newPartClone.Size
+		end
+
+		if child:IsA("Attachment") and newPartClone:FindFirstChild(child.Name) then
+			continue
+		end
+
+		local newAttachment = child:Clone()
+		newAttachment.Parent = newPartClone
+	end
+
+	oldPart.Parent = nil
+	oldPart.Transparency = 1
+	oldPart.CanCollide = false
+
+	for _, motor in ipairs(character:GetDescendants()) do
+		if not motor:IsA("Motor6D") then
+			continue
+		end
+
+		if motor.Part0 == oldPart then
+			motor.Part0 = newPartClone
+		elseif motor.Part1 == oldPart then
+			motor.Part1 = newPartClone
+
+			local lastOffset = oldPart:FindFirstChild("Offset")
+			local offset = newPartClone:FindFirstChild("Offset")
+
+			local originalC1 = motor:FindFirstChild("OriginalC1") and motor:FindFirstChild("OriginalC1").Value
+				or motor.C1
+
+			if lastOffset then
+				motor.C1 = originalC1 * lastOffset.Value:Inverse()
+			end
+
+			if offset then
+				motor.C1 = motor.C1 * offset.Value
+			end
+		end
+
+		if motor:FindFirstChild("OriginalC1") then
+			motor:FindFirstChild("OriginalC1").Value = motor.C1
+		end
+	end
+
+	oldPart:Destroy()
+
+	PlayerController.scalePart(character, newPartClone.Name, scalingFactor)
 end
 
 return PlayerController
