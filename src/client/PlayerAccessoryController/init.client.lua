@@ -1,10 +1,12 @@
 -- Services --
 local CollectionService = game:GetService("CollectionService")
--- local Players = game:GetService("Players")
+local Players = game:GetService("Players")
 
 -- Dependencies --
 local Constatns = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local Janitor = require(game.ReplicatedStorage.Packages.Janitor)
+local Roact = require(game.ReplicatedStorage.Packages.roact)
+local AccessoryColorSelectionGui = require(script.AccessoryColorSelectionGui)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local TableUtils = Utils.TableUtils
 
@@ -12,67 +14,34 @@ local TableUtils = Utils.TableUtils
 local accessoryAddedSignal = CollectionService:GetInstanceAddedSignal(Constatns.TAGS.ACCESSORY)
 local accessoryRemovedSignal = CollectionService:GetInstanceRemovedSignal(Constatns.TAGS.ACCESSORY)
 local accessories = {}
--- local localPlayer = Players.LocalPlayer
 local RemoteEvents = game.ReplicatedStorage.RemoteEvents
+local localPlayer = Players.LocalPlayer
+local playerGui = localPlayer:WaitForChild("PlayerGui")
+local guiHandle
 
--- local function ToggleAccessory(accessoryModel)
--- 	local assetIdValue = accessoryModel:FindFirstChild("AssetID")
--- 	local assetTypeIdValue = accessoryModel:FindFirstChild("AssetTypeId")
+local function InitColorSelectionGui()
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Parent = playerGui
+	screenGui.Name = "AccessoryColorSelectionGui"
+	screenGui.IgnoreGuiInset = true
 
--- 	local accessory = accessoryModel:FindFirstChildOfClass("Accessory")
--- 	if not accessory then
--- 		return
--- 	end
+	local background = Instance.new("Frame")
+	background.Parent = screenGui
+	background.Name = "BG"
+	background.BackgroundTransparency = 1
+	background.AnchorPoint = Vector2.new(0.5, 0.5)
+	background.Position = UDim2.fromScale(0.5, 0.5)
+	background.Size = UDim2.fromScale(1, 1)
 
--- 	local character = localPlayer.Character
--- 	if not character then
--- 		return
--- 	end
-
--- 	local humanoid = character:FindFirstChild("Humanoid")
--- 	if not humanoid then
--- 		return
--- 	end
--- 	local hd: HumanoidDescription = humanoid:GetAppliedDescription()
--- 	hd.Parent = script
-
--- 	local AccessoryType = ACCESSORY_INDEX[assetTypeIdValue.Value]
-
--- 	local success, _ = pcall(function()
--- 		if hd[AccessoryType] and assetTypeIdValue.Value ~= 11 and assetTypeIdValue.Value ~= 12 then
--- 			hd[AccessoryType] = hd[AccessoryType] .. "," .. assetIdValue.Value
--- 		else
--- 			hd[AccessoryType] = assetIdValue.Value
--- 		end
--- 	end)
-
--- 	if not success then
--- 		return
--- 	end
-
--- 	humanoid:ApplyDescriptionReset(hd)
-
--- 	hd:Destroy()
-
--- 	local existingAccessory = character:FindFirstChild(accessory.Name)
-
--- 	if existingAccessory then
--- 		existingAccessory:Destroy()
--- 	else
--- 		local accessoryClone = accessory:Clone()
--- 		accessoryClone.Parent = nil
-
--- 		TableUtils:apply(accessoryClone:GetDescendants(), function(child)
--- 			if not child:IsA("BasePart") then
--- 				return
--- 			end
-
--- 			child.Anchored = false
--- 		end)
-
--- 		humanoid:AddAccessory(accessoryClone)
--- 	end
--- end
+	guiHandle = Roact.mount(
+		Roact.createElement(AccessoryColorSelectionGui, {
+			Visible = false,
+			Input = {},
+		}),
+		background,
+		"AccessoryColorSelectionGui"
+	)
+end
 
 local function OnAccessoryAdded(accessory)
 	local cd = Instance.new("ClickDetector")
@@ -98,10 +67,25 @@ local function OnAccessoryAdded(accessory)
 	local janitor = Janitor.new()
 
 	local clickedConnection = cd.MouseClick:Connect(function()
-		-- ToggleAccessory(accessory)
-		RemoteEvents.AccessoryManager_RE:FireServer(Constatns.EVENTS.ACCESSORY_MANAGER_EVENTS.TOGGLE_ACCESSORY, {
-			accessory = accessory,
-		})
+		local model = Instance.new("Model")
+		local accessoryClone = accessory:Clone()
+		CollectionService:RemoveTag(accessoryClone, Constatns.TAGS.ACCESSORY)
+		accessoryClone.Parent = model
+
+		if accessoryClone:FindFirstChildOfClass("ClickDetector") then
+			accessoryClone:FindFirstChildOfClass("ClickDetector"):Destroy()
+		end
+
+		Roact.update(
+			guiHandle,
+			Roact.createElement(AccessoryColorSelectionGui, {
+				Visible = true,
+				Input = {
+					model = model,
+					accessory = accessory,
+				},
+			})
+		)
 	end)
 
 	local mouseEnterConnection = cd.MouseHoverEnter:Connect(function()
@@ -137,3 +121,5 @@ end
 
 accessoryAddedSignal:Connect(OnAccessoryAdded)
 accessoryRemovedSignal:Connect(OnAccessoryRemoved)
+
+InitColorSelectionGui()
