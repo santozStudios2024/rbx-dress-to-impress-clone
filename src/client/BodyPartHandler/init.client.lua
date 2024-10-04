@@ -4,8 +4,6 @@ local CollectionService = game:GetService("CollectionService")
 -- Dependencies --
 local Constatns = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local Janitor = require(game.ReplicatedStorage.Packages.Janitor)
--- local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
--- local TableUtils = Utils.TableUtils
 
 -- Variables --
 local bodyPartAddedSignal = CollectionService:GetInstanceAddedSignal(Constatns.TAGS.BODY_PART)

@@ -1,8 +1,6 @@
-local CollectionService = game:GetService("CollectionService")
 -- Services --
-
--- Variables --
-local RemoteEvents = game.ReplicatedStorage.RemoteEvents
+local CollectionService = game:GetService("CollectionService")
+local HttpService = game:GetService("HttpService")
 
 -- Dependencies --
 local Constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
@@ -10,6 +8,12 @@ local PlayerController = require(game.ReplicatedStorage.Shared.Modules.PlayerCon
 local Promise = require(game.ReplicatedStorage.Packages.Promise)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local TableUtils = Utils.TableUtils
+
+-- Variables --
+local RemoteEvents = game.ReplicatedStorage.RemoteEvents
+local bodyPartAddedSignal = CollectionService:GetInstanceAddedSignal(Constants.TAGS.BODY_PART)
+local assets = game.ReplicatedStorage.Shared.Assets
+local defaultCharacter = assets.DefaultCharacter
 
 -- Constants --
 local PARTS_TO_SCALE = {
@@ -41,6 +45,28 @@ local PARTS_TO_SCALE = {
 		"RightFoot",
 	},
 }
+
+local function OnBodyPartAdded(bodyPart)
+	for _, part in ipairs(bodyPart:GetChildren()) do
+		if not part:IsA("BasePart") then
+			continue
+		end
+
+		local partId = part:FindFirstChild("PartId")
+		if partId then
+			continue
+		end
+
+		partId = Instance.new("StringValue")
+		partId.Parent = part
+		partId.Name = "PartId"
+		partId.Value = HttpService:GenerateGUID(false)
+
+		for _, child in ipairs(part:GetDescendants()) do
+			child:SetAttribute("Destroyable", true)
+		end
+	end
+end
 
 local function ToggleAccessory(player, data)
 	local character = player.character
@@ -193,7 +219,27 @@ local function SwapBodyPart(player, data)
 	end
 
 	for _, part in ipairs(data.bodyPart:GetChildren()) do
-		PlayerController.swapBodyPart(character, part)
+		local characterPart = character:FindFirstChild(part.Name)
+		if not characterPart then
+			continue
+		end
+
+		local defaultPart = defaultCharacter:FindFirstChild(part.Name)
+		if not defaultPart then
+			continue
+		end
+
+		local swapPartId = part:FindFirstChild("PartId")
+		local characterPartId = characterPart:FindFirstChild("PartId")
+
+		local swapPart
+		if swapPartId and characterPartId and swapPartId.Value == characterPartId.Value then
+			swapPart = defaultPart
+		else
+			swapPart = part
+		end
+
+		PlayerController.swapBodyPart(character, swapPart)
 	end
 end
 
@@ -208,3 +254,9 @@ local function OnAccessoryManagerEvent(player, eventName, eventData)
 end
 
 RemoteEvents.AccessoryManager_RE.OnServerEvent:Connect(OnAccessoryManagerEvent)
+
+for _, bodyPart in ipairs(CollectionService:GetTagged(Constants.TAGS.BODY_PART)) do
+	OnBodyPartAdded(bodyPart)
+end
+
+bodyPartAddedSignal:Connect(OnBodyPartAdded)
