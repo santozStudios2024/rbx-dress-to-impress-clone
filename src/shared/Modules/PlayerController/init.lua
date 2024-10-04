@@ -9,7 +9,8 @@ local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local TableUtils = Utils.TableUtils
 
 -- Variables --
--- local Assets = game.ReplicatedStorage.Shared.Assets
+local Assets = game.ReplicatedStorage.Shared.Assets
+local defaultCharacter = Assets.DefaultCharacter
 -- local basicHd = Assets.BasicHD
 
 -- Constants --
@@ -129,6 +130,10 @@ function PlayerController.resetDescription(player)
 
 		face.Transparency = 0
 	end):catch(warn)
+
+	for _, part in ipairs(defaultCharacter:GetChildren()) do
+		PlayerController.swapBodyPart(character, part)
+	end
 end
 
 function PlayerController.playAnimation(character, animation, animProps, stopAll)
