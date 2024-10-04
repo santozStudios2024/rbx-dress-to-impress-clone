@@ -251,8 +251,12 @@ function PlayerController.scalePart(character, partName, scaleFactor)
 				originalC1.Parent = child
 				originalC1.Value = child.C1
 			end
-			child.C0 = CFrame.new(originalC0.Value.Position * scaleFactor) * originalC0.Value.Rotation
-			child.C1 = CFrame.new(originalC1.Value.Position * scaleFactor) * originalC1.Value.Rotation
+
+			if child.Part0 == part then
+				child.C0 = CFrame.new(originalC0.Value.Position * scaleFactor) * originalC0.Value.Rotation
+			else
+				child.C1 = CFrame.new(originalC1.Value.Position * scaleFactor) * originalC1.Value.Rotation
+			end
 		end
 	end
 
@@ -545,15 +549,16 @@ function PlayerController.swapBodyPart(character, newPart)
 
 	local scalingFactor = PlayerController.getScalingFactor(oldPart)
 
-	local originalCFrame = oldPart.CFrame
-
 	local newPartClone = newPart:Clone()
-	newPartClone.CFrame = originalCFrame
 	newPartClone.Parent = character
 	newPartClone.CanCollide = false
 	newPartClone.Anchored = false
 
 	for _, child in ipairs(oldPart:GetChildren()) do
+		if child:GetAttribute("Destroyable") then
+			continue
+		end
+
 		if child.Name == "OriginalSize" then
 			child.Value = newPartClone.Size
 		end
@@ -566,6 +571,10 @@ function PlayerController.swapBodyPart(character, newPart)
 		newAttachment.Parent = newPartClone
 	end
 
+	oldPart.Parent = nil
+	oldPart.Transparency = 1
+	oldPart.CanCollide = false
+
 	for _, motor in ipairs(character:GetDescendants()) do
 		if not motor:IsA("Motor6D") then
 			continue
@@ -575,15 +584,26 @@ function PlayerController.swapBodyPart(character, newPart)
 			motor.Part0 = newPartClone
 		elseif motor.Part1 == oldPart then
 			motor.Part1 = newPartClone
+
+			local lastOffset = oldPart:FindFirstChild("Offset")
 			local offset = newPartClone:FindFirstChild("Offset")
+
+			local originalC1 = motor:FindFirstChild("OriginalC1") and motor:FindFirstChild("OriginalC1").Value
+				or motor.C1
+
+			if lastOffset then
+				motor.C1 = originalC1 * lastOffset.Value:Inverse()
+			end
+
 			if offset then
 				motor.C1 = motor.C1 * offset.Value
 			end
 		end
-	end
 
-	oldPart.Transparency = 1
-	oldPart.CanCollide = false
+		if motor:FindFirstChild("OriginalC1") then
+			motor:FindFirstChild("OriginalC1").Value = motor.C1
+		end
+	end
 
 	oldPart:Destroy()
 
