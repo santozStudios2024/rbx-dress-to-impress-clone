@@ -1,5 +1,4 @@
 -- Services --
-local LightingService = game:GetService("Lighting")
 
 -- Dpendencies --
 local ClientModules = script.Parent.Parent.Modules
@@ -9,8 +8,6 @@ local Roact = require(game.ReplicatedStorage.Packages.roact)
 local BaseTheme = require(ClientModules.BaseTheme)
 local TweeningFrame = require(ClientModules.Components.TweeningFrame)
 local ColorPicker = require(ClientModules.Components.ColorPicker)
-local ModelVpComponent = require(ClientModules.Components.ModelVpComponent)
-local Flipper = require(game.ReplicatedStorage.Packages.flipper)
 local HudGuiController = require(ClientModules.HudGuiController)
 local ImageAssets = require(Assets.ImageAssets)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
@@ -67,27 +64,11 @@ function AccessoryColorSelectionGui:saveCustomization()
 	})
 end
 
-function AccessoryColorSelectionGui:updateVisibility()
-	if self.props.Visible then
-		self.blurMotor:setGoal(Flipper.Spring.new(24, {
-			frequency = 10,
-			dampingRatio = 1,
-		}))
-	else
-		self.blurMotor:setGoal(Flipper.Spring.new(0, {
-			frequency = 10,
-			dampingRatio = 1,
-		}))
-	end
-end
+function AccessoryColorSelectionGui:updateVisibility() end
 
 function AccessoryColorSelectionGui:init()
 	self.selectedColor, self.updateSelectedColor = Roact.createBinding(Color3.new(1, 1, 1))
 	self.currentSelectionIndex, self.updateCurrentSelectionIndex = Roact.createBinding(1)
-
-	self.blur, self.updateBlur = Roact.createBinding(0)
-	self.blurMotor = Flipper.SingleMotor.new(0)
-	self.blurMotor:onStep(self.updateBlur)
 end
 
 function AccessoryColorSelectionGui:render()
@@ -100,13 +81,6 @@ function AccessoryColorSelectionGui:render()
 				theme = theme,
 				Visible = self.props.Visible,
 			}, {
-				BlurPortal = createElement(Roact.Portal, {
-					target = LightingService,
-				}, {
-					Blur = createElement("BlurEffect", {
-						Size = self.blur,
-					}),
-				}),
 				AccessoryColorFrame = createElement("Frame", {
 					AnchorPoint = theme.ap.right_center,
 					Position = UDim2.fromScale(0.9, 0.5),
@@ -287,27 +261,27 @@ function AccessoryColorSelectionGui:render()
 						}),
 					}),
 				}),
-				AccessoryModelBg = createElement("Frame", {
-					AnchorPoint = theme.ap.left_center,
-					Position = UDim2.fromScale(0.05, 0.5),
-					Size = UDim2.fromScale(0.4, 0.55),
-					BackgroundColor3 = Color3.new(0, 0, 0),
-				}, {
-					UICorner = createElement("UICorner", {
-						CornerRadius = UDim.new(0.05),
-					}),
-					Accessory = createElement(ModelVpComponent, {
-						dummyModel = self.props.Input.model,
-						canAnimate = true,
-						canRotate = false,
-						canManuallyRotate = true,
-						AnchorPoint = theme.ap.center,
-						Position = theme.pos.center,
-						Size = theme.size,
-						Visible = true,
-						resetScreen = true,
-					}),
-				}),
+				-- AccessoryModelBg = createElement("Frame", {
+				-- 	AnchorPoint = theme.ap.left_center,
+				-- 	Position = UDim2.fromScale(0.05, 0.5),
+				-- 	Size = UDim2.fromScale(0.4, 0.55),
+				-- 	BackgroundColor3 = Color3.new(0, 0, 0),
+				-- }, {
+				-- 	UICorner = createElement("UICorner", {
+				-- 		CornerRadius = UDim.new(0.05),
+				-- 	}),
+				-- 	Accessory = createElement(ModelVpComponent, {
+				-- 		dummyModel = self.props.Input.model,
+				-- 		canAnimate = true,
+				-- 		canRotate = false,
+				-- 		canManuallyRotate = true,
+				-- 		AnchorPoint = theme.ap.center,
+				-- 		Position = theme.pos.center,
+				-- 		Size = theme.size,
+				-- 		Visible = true,
+				-- 		resetScreen = true,
+				-- 	}),
+				-- }),
 				ActionButtons = createElement("Frame", {
 					AnchorPoint = theme.ap.right_bottom,
 					Position = UDim2.fromScale(0.95, 0.95),
