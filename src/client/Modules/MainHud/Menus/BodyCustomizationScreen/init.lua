@@ -133,7 +133,7 @@ function BodyCustomizationScreen:render()
 					}),
 					Customization = self:getCustomization(),
 				}),
-				PlayerAvatarBg = createElement("Frame", {
+				PlayerAvatarBg = createElement("CanvasGroup", {
 					AnchorPoint = theme.ap.left_center,
 					Position = UDim2.fromScale(0.05, 0.5),
 					Size = UDim2.fromScale(0.4, 0.55),
