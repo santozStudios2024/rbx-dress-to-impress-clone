@@ -23,6 +23,7 @@ local localPlayer = Players.LocalPlayer
 -- 	userId = localPlayer.UserId,
 -- }
 local assets = game.ReplicatedStorage.Shared.Assets
+local ImageAssets = require(assets.ImageAssets)
 local animate = assets.Animate
 
 -- Constants --
@@ -421,104 +422,114 @@ function AvatarVpComponent:render()
 
 	return createElement(BaseTheme.Consumer, {
 		render = function(theme)
-			return createElement("ViewportFrame", {
-				AnchorPoint = self.props.AnchorPoint,
-				BackgroundTransparency = self.props.colorBind.color:map(function(selectedColor)
-					if self.props.resetScreen then
+			return Roact.createFragment({
+				ViewportFrame = createElement("ViewportFrame", {
+					AnchorPoint = self.props.AnchorPoint,
+					BackgroundTransparency = self.props.colorBind.color:map(function(selectedColor)
+						if self.props.resetScreen then
+							return 1
+						end
+						if not self.dummyModel then
+							return 1
+						end
+
+						self:updateColor(selectedColor):andThen(function()
+							local scaling = self.props.scaleBind.scale:getValue()
+
+							return self:updateScaling(scaling)
+						end)
+
 						return 1
-					end
-					if not self.dummyModel then
-						return 1
-					end
+					end),
+					BorderSizePixel = self.props.scaleBind.scale:map(function(scaling)
+						if self.props.resetScreen then
+							return 0
+						end
+						if not self.dummyModel then
+							return 0
+						end
+						local humanoid = self.dummyModel:FindFirstChildOfClass("Humanoid")
 
-					self:updateColor(selectedColor):andThen(function()
-						local scaling = self.props.scaleBind.scale:getValue()
+						if humanoid then
+							local description: HumanoidDescription = humanoid:GetAppliedDescription()
 
-						return self:updateScaling(scaling)
-					end)
+							humanoid:ApplyDescription(description)
+						end
 
-					return 1
-				end),
-				BorderSizePixel = self.props.scaleBind.scale:map(function(scaling)
-					if self.props.resetScreen then
+						self:updateScaling(scaling)
+
 						return 0
-					end
-					if not self.dummyModel then
-						return 0
-					end
-					local humanoid = self.dummyModel:FindFirstChildOfClass("Humanoid")
+					end),
+					Position = self.props.Position,
+					Size = self.props.Size,
+					[Roact.Ref] = self.vpRef,
+					[roactEvents.InputBegan] = function(_, input)
+						if
+							input.UserInputType ~= Enum.UserInputType.MouseButton1
+							and input.UserInputType ~= Enum.UserInputType.Touch
+						then
+							return
+						end
+						if input.UserInputState ~= Enum.UserInputState.Begin then
+							return
+						end
 
-					if humanoid then
-						local description: HumanoidDescription = humanoid:GetAppliedDescription()
+						self.mousePressed = true
+						self.manullyRotating = true
+					end,
+					Visible = self.props.faceBind.face:map(function(selectedFace)
+						if self.props.resetScreen then
+							return
+						end
+						if not self.dummyModel then
+							return
+						end
 
-						humanoid:ApplyDescription(description)
-					end
+						self:updateFace(selectedFace):andThen(function()
+							local scaling = self.props.scaleBind.scale:getValue()
 
-					self:updateScaling(scaling)
+							return self:updateScaling(scaling)
+						end)
 
-					return 0
-				end),
-				Position = self.props.Position,
-				Size = self.props.Size,
-				[Roact.Ref] = self.vpRef,
-				[roactEvents.InputBegan] = function(_, input)
-					if
-						input.UserInputType ~= Enum.UserInputType.MouseButton1
-						and input.UserInputType ~= Enum.UserInputType.Touch
-					then
-						return
-					end
-					if input.UserInputState ~= Enum.UserInputState.Begin then
-						return
-					end
-
-					self.mousePressed = true
-					self.manullyRotating = true
-				end,
-				Visible = self.props.faceBind.face:map(function(selectedFace)
-					if self.props.resetScreen then
-						return
-					end
-					if not self.dummyModel then
-						return
-					end
-
-					self:updateFace(selectedFace):andThen(function()
-						local scaling = self.props.scaleBind.scale:getValue()
-
-						return self:updateScaling(scaling)
-					end)
-
-					return true
-				end),
-			}, {
-				Loading = createElement("TextLabel", {
-					AnchorPoint = theme.ap.center,
-					BackgroundColor3 = Color3.new(0.254902, 0.254902, 0.254902),
-					BackgroundTransparency = 1,
-					Position = UDim2.fromScale(0.5, 0.5),
-					Size = UDim2.fromScale(0.5, 0.5),
-					Text = "Loading...",
-					TextScaled = true,
-					FontFace = theme.fonts.bold,
-					TextColor3 = Color3.new(1, 1, 1),
+						return true
+					end),
 					ZIndex = 2,
-					Visible = self.isLoading,
 				}, {
-					UIPadding = createElement("UIPadding", {
-						PaddingLeft = UDim.new(0.2, 0),
-						PaddingRight = UDim.new(0.2, 0),
-						PaddingTop = UDim.new(0.3, 0),
-						PaddingBottom = UDim.new(0.3, 0),
+					Loading = createElement("TextLabel", {
+						AnchorPoint = theme.ap.center,
+						BackgroundColor3 = Color3.new(0.254902, 0.254902, 0.254902),
+						BackgroundTransparency = 1,
+						Position = UDim2.fromScale(0.5, 0.5),
+						Size = UDim2.fromScale(0.5, 0.5),
+						Text = "Loading...",
+						TextScaled = true,
+						FontFace = theme.fonts.bold,
+						TextColor3 = Color3.new(1, 1, 1),
+						ZIndex = 2,
+						Visible = self.isLoading,
+					}, {
+						UIPadding = createElement("UIPadding", {
+							PaddingLeft = UDim.new(0.2, 0),
+							PaddingRight = UDim.new(0.2, 0),
+							PaddingTop = UDim.new(0.3, 0),
+							PaddingBottom = UDim.new(0.3, 0),
+						}),
+						UIStroke = createElement("UIStroke", {
+							Thickness = UIRatioHandler.CalculateStrokeThickness(7),
+						}),
+						UICorner = createElement("UICorner", {
+							CornerRadius = UDim.new(0.05, 0),
+						}),
 					}),
-					UIStroke = createElement("UIStroke", {
-						Thickness = UIRatioHandler.CalculateStrokeThickness(7),
-					}),
-					UICorner = createElement("UICorner", {
-						CornerRadius = UDim.new(0.05, 0),
-					}),
+					WorldModel = createElement("WorldModel", {}, {}),
 				}),
-				WorldModel = createElement("WorldModel", {}, {}),
+				Bg = createElement("ImageLabel", {
+					AnchorPoint = theme.ap.center,
+					Position = theme.pos.center,
+					Size = theme.size,
+					BackgroundTransparency = 1,
+					Image = ImageAssets.avatar_vp_screen.background,
+				}),
 			})
 		end,
 	})
