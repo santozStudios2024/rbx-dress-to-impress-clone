@@ -72,6 +72,10 @@ function CompetitionHeader:gameStateUpdated(_, currentStateData)
 			}):catch(function(err)
 				warn(tostring(err))
 			end)
+
+			HudGuiController.openMenu("RoundScreen", {
+				resetScreen = true,
+			})
 		else
 			-- self.updateRoundInfo('<font color="rgb(75, 252, 255)">Round:</font>\n')
 			self.updateRoundInfo("")

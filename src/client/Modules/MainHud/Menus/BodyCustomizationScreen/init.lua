@@ -202,6 +202,9 @@ function BodyCustomizationScreen:render()
 							end
 
 							HudGuiController.closeMenu("BodyCustomizationScreen")
+							HudGuiController.openMenu("RoundScreen", {
+								resetScreen = true,
+							})
 						end,
 					}, {
 						UICorner = createElement("UICorner", {
@@ -236,6 +239,10 @@ function BodyCustomizationScreen:render()
 							end
 
 							HudGuiController.closeMenu("BodyCustomizationScreen")
+
+							HudGuiController.openMenu("RoundScreen", {
+								resetScreen = true,
+							})
 
 							self:saveCustomization()
 						end,

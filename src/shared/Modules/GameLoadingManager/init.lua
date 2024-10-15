@@ -1,5 +1,5 @@
 -- Dependencies --
-local Signal = require(game.ReplicatedStorage.Packages.Signal)
+local Signal = require(game.ReplicatedStorage:WaitForChild("Packages", math.huge):WaitForChild("Signal", math.huge))
 
 -- Variables --
 local isGameLoaded = false
