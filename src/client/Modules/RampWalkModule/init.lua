@@ -47,7 +47,7 @@ function RampWalkModule.startWalk(playerData, getPoseAnim)
 
 		task.wait()
 
-		local clone = PlayerController.cloneCharacter(character)
+		local clone = PlayerController.cloneCharacter(playerData.player, character)
 
 		resolve(clone)
 	end)

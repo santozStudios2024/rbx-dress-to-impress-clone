@@ -55,6 +55,9 @@ local PARTS_TO_SCALE = {
 		"RightLowerLeg",
 		"RightFoot",
 	},
+	EXTRA = {
+		"HumanoidRootPart",
+	},
 }
 local AutomaticRotationSpeed = 30
 local ManualRotationSpeed = 180
@@ -81,21 +84,45 @@ function AvatarVpComponent:updateColor(selectedColor)
 end
 
 function AvatarVpComponent:updateScaling(scaling)
+	local humanoid = self.dummyModel:FindFirstChildOfClass("Humanoid")
+
+	if humanoid then
+		local description: HumanoidDescription = humanoid:GetAppliedDescription()
+
+		-- description.HeightScale = scaling.BodyHeightScale
+		-- description.WidthScale = scaling.BodyWidthScale
+		-- description.DepthScale = scaling.BodyDepthScale
+
+		humanoid:ApplyDescription(description)
+	end
+
 	for partToScale, scale in pairs(scaling) do
 		if not PARTS_TO_SCALE[partToScale] then
 			continue
 		end
 
 		for _, partName in ipairs(PARTS_TO_SCALE[partToScale]) do
-			PlayerController.scalePart(self.dummyModel, partName, scale)
+			if partName == "Head" then
+				PlayerController.scalePart(self.dummyModel, partName, Vector3.one * scale)
+				continue
+			end
+
+			PlayerController.scalePart(
+				self.dummyModel,
+				partName,
+				Vector3.new(
+					math.max(scale, scaling.BodyWidthScale),
+					math.max(scale, scaling.BodyHeightScale),
+					math.max(scale, scaling.BodyDepthScale)
+				)
+			)
 		end
 	end
 
-	if scaling.RightLegScale >= scaling.LeftLegScale then
-		PlayerController.scaleHipHeight(self.dummyModel, scaling.RightLegScale)
-	else
-		PlayerController.scaleHipHeight(self.dummyModel, scaling.LeftLegScale)
-	end
+	PlayerController.scaleHipHeight(
+		self.dummyModel,
+		math.max(scaling.RightLegScale, scaling.LeftLegScale, scaling.BodyHeightScale)
+	)
 
 	return Promise.new(function()
 		self.vpfModel = VpModelModule.new(self.vpRef:getValue(), self.camera)
@@ -198,7 +225,7 @@ function AvatarVpComponent:updateVp()
 
 	Promise.new(function(resolve)
 		-- Create Player Avatar --
-		local clone = PlayerController.cloneCharacter(localPlayer.Character)
+		local clone = PlayerController.cloneCharacter(localPlayer, localPlayer.Character)
 
 		resolve(clone)
 	end)
@@ -267,14 +294,14 @@ function AvatarVpComponent:updateVp()
 
 			local description: HumanoidDescription = humanoid:GetAppliedDescription()
 
-			local scalingParts = {
-				HeadScale = "Head",
-				TorsoScale = "UpperTorso",
-				LeftArmScale = "LeftUpperArm",
-				RightArmScale = "RightUpperArm",
-				LeftLegScale = "LeftUpperLeg",
-				RightLegScale = "RightUpperLeg",
-			}
+			-- local scalingParts = {
+			-- 	HeadScale = "Head",
+			-- 	TorsoScale = "UpperTorso",
+			-- 	LeftArmScale = "LeftUpperArm",
+			-- 	RightArmScale = "RightUpperArm",
+			-- 	LeftLegScale = "LeftUpperLeg",
+			-- 	RightLegScale = "RightUpperLeg",
+			-- }
 
 			local faceData
 			if description.FaceAccessory ~= "" then
@@ -290,19 +317,33 @@ function AvatarVpComponent:updateVp()
 			end
 
 			local bodyScale = {}
-			for prop, partName in pairs(scalingParts) do
-				local part = self.dummyModel:FindFirstChild(partName)
-				if not part then
-					continue
-				end
+			-- for prop, partName in pairs(scalingParts) do
+			-- 	local part = self.dummyModel:FindFirstChild(partName)
+			-- 	if not part then
+			-- 		continue
+			-- 	end
 
-				local originalSizeValue = part:FindFirstChild("OriginalSize")
-				if not originalSizeValue then
-					bodyScale[prop] = 1
-				end
+			-- 	local originalSizeValue = part:FindFirstChild("OriginalSize")
+			-- 	if not originalSizeValue then
+			-- 		bodyScale[prop] = 1
+			-- 	end
 
-				local scaling = (part.Size / originalSizeValue.Value).X
-				bodyScale[prop] = scaling
+			-- 	local scaling = (part.Size / originalSizeValue.Value).X
+			-- 	bodyScale[prop] = scaling
+			-- end
+
+			-- bodyScale.BodyHeightScale = description.HeightScale
+			-- bodyScale.BodyWidthScale = description.WidthScale
+			-- bodyScale.BodyDepthScale = description.DepthScale
+			local scaleValuesFolder = localPlayer:FindFirstChild("ScaleValues")
+			if scaleValuesFolder then
+				for _, child in ipairs(scaleValuesFolder:GetChildren()) do
+					if not child:IsA("NumberValue") then
+						continue
+					end
+
+					bodyScale[child.Name] = child.Value
+				end
 			end
 
 			self.props.resetScreen = true
@@ -447,13 +488,6 @@ function AvatarVpComponent:render()
 						end
 						if not self.dummyModel then
 							return 0
-						end
-						local humanoid = self.dummyModel:FindFirstChildOfClass("Humanoid")
-
-						if humanoid then
-							local description: HumanoidDescription = humanoid:GetAppliedDescription()
-
-							humanoid:ApplyDescription(description)
 						end
 
 						self:updateScaling(scaling)

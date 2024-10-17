@@ -27,7 +27,6 @@ local RemoteEvents = game.ReplicatedStorage.RemoteEvents
 local BodyCustomizationScreen = Roact.Component:extend("BodyCustomizationScreen")
 
 function BodyCustomizationScreen:saveCustomization()
-	print("Save Body Customization")
 	RemoteEvents.AccessoryManager_RE:FireServer(Constants.EVENTS.ACCESSORY_MANAGER_EVENTS.TOGGLE_BODY_COLOR, {
 		bodyColor = self.selectedColor:getValue(),
 		bodyScale = self.bodyScale:getValue(),
@@ -88,17 +87,22 @@ function BodyCustomizationScreen:init()
 	self.selectedColor, self.updateSelectedColor = Roact.createBinding(Color3.new(1, 1, 1))
 
 	self.bodyScale, self.updateBodyScale = Roact.createBinding({
-		-- BodyHeightScale = 1,
-		-- BodyWidthScale = 1,
-		-- BodyDepthScale = 1,
-		-- HeadScale = 1,
 		HeadScale = 1,
 		TorsoScale = 1,
 		LeftArmScale = 1,
 		LeftLegScale = 1,
 		RightArmScale = 1,
 		RightLegScale = 1,
+		BodyHeightScale = 1,
+		BodyWidthScale = 1,
+		BodyDepthScale = 1,
 	})
+
+	-- self.humanoidScale, self.updateHumanoidScale = Roact.createBinding({
+	-- 	BodyHeightScale = 1,
+	-- 	BodyWidthScale = 1,
+	-- 	BodyDepthScale = 1,
+	-- })
 
 	self.selectedFace, self.updateSelectedFace = Roact.createBinding()
 

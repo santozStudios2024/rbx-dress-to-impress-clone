@@ -103,7 +103,7 @@ local function ToggleAccessory(player, data)
 
 		task.wait()
 
-		PlayerController.initializeAccessory(character, accessoryClone)
+		PlayerController.initializeAccessory(player, character, accessoryClone)
 	end
 end
 
@@ -170,20 +170,41 @@ local function SaveBodyCustomizations(player, data)
 	humanoid:ApplyDescription(description)
 
 	for partToScale, scale in pairs(bodyScale) do
+		local scaleValuesFolder = player:FindFirstChild("ScaleValues")
+		if scaleValuesFolder then
+			local scalingValue = scaleValuesFolder:FindFirstChild(partToScale)
+
+			if scalingValue then
+				scalingValue.Value = scale
+			end
+		end
+
 		if not PARTS_TO_SCALE[partToScale] then
 			continue
 		end
 
 		for _, partName in ipairs(PARTS_TO_SCALE[partToScale]) do
-			PlayerController.scalePart(character, partName, scale)
+			if partName == "Head" then
+				PlayerController.scalePart(character, partName, Vector3.one * scale)
+				continue
+			end
+
+			PlayerController.scalePart(
+				character,
+				partName,
+				Vector3.new(
+					math.max(scale, bodyScale.BodyWidthScale),
+					math.max(scale, bodyScale.BodyHeightScale),
+					math.max(scale, bodyScale.BodyDepthScale)
+				)
+			)
 		end
 	end
 
-	if bodyScale.RightLegScale >= bodyScale.LeftLegScale then
-		PlayerController.scaleHipHeight(character, bodyScale.RightLegScale)
-	else
-		PlayerController.scaleHipHeight(character, bodyScale.LeftLegScale)
-	end
+	PlayerController.scaleHipHeight(
+		character,
+		math.max(bodyScale.RightLegScale, bodyScale.LeftLegScale, bodyScale.BodyHeightScale)
+	)
 
 	Promise.new(function(_, reject)
 		local head = character:FindFirstChild("Head")
@@ -239,7 +260,7 @@ local function SwapBodyPart(player, data)
 			swapPart = part
 		end
 
-		PlayerController.swapBodyPart(character, swapPart)
+		PlayerController.swapBodyPart(player, character, swapPart)
 	end
 end
 

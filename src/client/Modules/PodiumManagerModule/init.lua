@@ -37,7 +37,7 @@ function PodiumManagerModule.togglePodium(enable)
 
 				character.Archivable = true
 
-				table.insert(models, PlayerController.cloneCharacter(character))
+				table.insert(models, PlayerController.cloneCharacter(playerData.player, character))
 			end
 
 			resolve(models)
