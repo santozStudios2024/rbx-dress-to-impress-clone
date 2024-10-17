@@ -7,6 +7,7 @@ local Constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
 local Promise = require(game.ReplicatedStorage.Packages.Promise)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local TableUtils = Utils.TableUtils
+local VectorUtils = Utils.VectorUtils
 
 -- Variables --
 local Assets = game.ReplicatedStorage.Shared.Assets
@@ -30,6 +31,23 @@ local PARTS_TO_SCALE = {
 	"LeftUpperLeg",
 	"LeftLowerLeg",
 	"LeftFoot",
+}
+local PARTS_TO_SCALE_VALUES = {
+	Head = "HeadScale",
+	UpperTorso = "TorsoScale",
+	LowerTorso = "TorsoScale",
+	RightUpperArm = "RightArmScale",
+	RightLowerArm = "RightArmScale",
+	RightHand = "RightArmScale",
+	LeftUpperArm = "LeftArmScale",
+	LeftLowerArm = "LeftArmScale",
+	LeftHand = "LeftArmScale",
+	RightUpperLeg = "RightLegScale",
+	RightLowerLeg = "RightLegScale",
+	RightFoot = "RightLegScale",
+	LeftUpperLeg = "LeftLegScale",
+	LeftLowerLeg = "LeftLegScale",
+	LeftFoot = "LeftLegScale",
 }
 
 local PlayerController = {}
@@ -110,10 +128,21 @@ function PlayerController.resetDescription(player)
 			return
 		end
 
-		local scalingFactor = PlayerController.getScalingFactor(part)
+		-- local scalingFactor = PlayerController.getScalingFactor(player, part)
 
-		PlayerController.scalePart(character, part.Name, scalingFactor)
+		PlayerController.scalePart(character, part.Name, Vector3.one)
 	end)
+
+	local scaleValuesFolder = player:FindFirstChild("ScaleValues")
+	if scaleValuesFolder then
+		for _, child in ipairs(scaleValuesFolder:GetChildren()) do
+			if not child:IsA("NumberValue") then
+				continue
+			end
+
+			child.Value = 1
+		end
+	end
 
 	Promise.new(function(_, reject)
 		local head = character:FindFirstChild("Head")
@@ -132,7 +161,7 @@ function PlayerController.resetDescription(player)
 	end):catch(warn)
 
 	for _, part in ipairs(defaultCharacter:GetChildren()) do
-		PlayerController.swapBodyPart(character, part)
+		PlayerController.swapBodyPart(player, character, part)
 	end
 end
 
@@ -184,7 +213,7 @@ function PlayerController.scalePart(character, partName, scaleFactor)
 		originalSizeValue.Value = part.Size
 	end
 
-	part.Size = originalSizeValue.Value * scaleFactor
+	part.Size = VectorUtils.multiply(originalSizeValue.Value, scaleFactor)
 
 	for _, joint in ipairs(character:GetDescendants()) do
 		if joint:IsA("Motor6D") then
@@ -206,11 +235,11 @@ function PlayerController.scalePart(character, partName, scaleFactor)
 			end
 
 			if joint.Part0 == part then
-				local offset = (originalC0.Value.Position * scaleFactor) - originalC0.Value.Position
+				local offset = VectorUtils.multiply(originalC0.Value.Position, scaleFactor) - originalC0.Value.Position
 				joint.C0 = CFrame.new(originalC0.Value.Position + offset)
 					* CFrame.fromEulerAnglesXYZ(originalC0.Value:ToEulerAnglesXYZ())
 			elseif joint.Part1 == part then
-				local offset = (originalC1.Value.Position * scaleFactor) - originalC1.Value.Position
+				local offset = VectorUtils.multiply(originalC1.Value.Position, scaleFactor) - originalC1.Value.Position
 				joint.C1 = CFrame.new(originalC1.Value.Position + offset)
 					* CFrame.fromEulerAnglesXYZ(originalC1.Value:ToEulerAnglesXYZ())
 			end
@@ -226,9 +255,9 @@ function PlayerController.scalePart(character, partName, scaleFactor)
 				originalPos.Parent = child
 				originalPos.Value = child.Position
 			end
-			child.Position = originalPos.Value * scaleFactor
+			child.Position = VectorUtils.multiply(originalPos.Value, scaleFactor)
 		elseif child:IsA("SpecialMesh") then
-			child.Scale = child.Scale * scaleFactor
+			child.Scale = VectorUtils.multiply(child.Scale, scaleFactor)
 		elseif child:IsA("BasePart") then
 			originalSizeValue = child:FindFirstChild("OriginalSize")
 			if not originalSizeValue then
@@ -238,7 +267,7 @@ function PlayerController.scalePart(character, partName, scaleFactor)
 				originalSizeValue.Value = child.Size
 			end
 
-			child.Size = originalSizeValue.Value * scaleFactor
+			child.Size = VectorUtils.multiply(originalSizeValue.Value, scaleFactor)
 		elseif child:IsA("Motor6D") then
 			local originalC0 = child:FindFirstChild("OriginalC0")
 			if not originalC0 then
@@ -258,9 +287,11 @@ function PlayerController.scalePart(character, partName, scaleFactor)
 			end
 
 			if child.Part0 == part then
-				child.C0 = CFrame.new(originalC0.Value.Position * scaleFactor) * originalC0.Value.Rotation
+				child.C0 = CFrame.new(VectorUtils.multiply(originalC0.Value.Position, scaleFactor))
+					* originalC0.Value.Rotation
 			else
-				child.C1 = CFrame.new(originalC1.Value.Position * scaleFactor) * originalC1.Value.Rotation
+				child.C1 = CFrame.new(VectorUtils.multiply(originalC1.Value.Position, scaleFactor))
+					* originalC1.Value.Rotation
 			end
 		end
 	end
@@ -268,7 +299,7 @@ function PlayerController.scalePart(character, partName, scaleFactor)
 	PlayerController.scaleAccessories(character, partName, scaleFactor)
 end
 
-function PlayerController.initializeAccessory(character, accessory)
+function PlayerController.initializeAccessory(player, character, accessory)
 	local handle = accessory:FindFirstChild("Handle")
 	if not handle then
 		return
@@ -297,7 +328,7 @@ function PlayerController.initializeAccessory(character, accessory)
 	end
 
 	local part = children[index]
-	local scaleFactor = PlayerController.getScalingFactor(part)
+	local scaleFactor = PlayerController.getScalingFactor(player, part)
 
 	PlayerController.scaleAccessory(character, part, accessory, scaleFactor)
 end
@@ -365,7 +396,7 @@ function PlayerController.scaleAccessory(character, part, accessory, scaleFactor
 			originalSizeValue.Parent = handle
 			originalSizeValue.Value = handle.Size
 		end
-		handle.Size = originalSizeValue.Value * scaleFactor
+		handle.Size = VectorUtils.multiply(originalSizeValue.Value, scaleFactor)
 
 		local originalSize = handle:FindFirstChild("OriginalSize")
 		if originalSize then
@@ -382,7 +413,7 @@ function PlayerController.scaleAccessory(character, part, accessory, scaleFactor
 					originalPos.Value = handleChild.Position
 				end
 
-				handleChild.Position = originalPos.Value * scaleFactor
+				handleChild.Position = VectorUtils.multiply(originalPos.Value, scaleFactor)
 			elseif handleChild:IsA("SpecialMesh") then
 				originalSizeValue = handleChild:FindFirstChild("OriginalSize")
 				if not originalSizeValue then
@@ -391,7 +422,7 @@ function PlayerController.scaleAccessory(character, part, accessory, scaleFactor
 					originalSizeValue.Parent = handleChild
 					originalSizeValue.Value = handleChild.Scale
 				end
-				handleChild.Scale = originalSizeValue.Value * scaleFactor
+				handleChild.Scale = VectorUtils.multiply(originalSizeValue.Value, scaleFactor)
 			end
 		end
 
@@ -405,7 +436,7 @@ function PlayerController.scaleAccessory(character, part, accessory, scaleFactor
 					originalSizeValue.Parent = motor.Part1
 					originalSizeValue.Value = motor.Part1.Size
 				end
-				motor.Part1.Size = originalSizeValue.Value * scaleFactor
+				motor.Part1.Size = VectorUtils.multiply(originalSizeValue.Value, scaleFactor)
 
 				-- Adjust the Motor6D's C0 and C1 to reposition the MeshPart
 				local originalC0 = motor:FindFirstChild("OriginalC0")
@@ -423,11 +454,11 @@ function PlayerController.scaleAccessory(character, part, accessory, scaleFactor
 					originalC1.Value = motor.C1
 				end
 
-				local offset = (originalC0.Value.Position * scaleFactor) - originalC0.Value.Position
+				local offset = VectorUtils.multiply(originalC0.Value.Position, scaleFactor) - originalC0.Value.Position
 				motor.C0 = CFrame.new(originalC0.Value.Position + offset)
 					* CFrame.fromEulerAnglesXYZ(originalC0.Value:ToEulerAnglesXYZ())
 
-				offset = (originalC1.Value.Position * scaleFactor) - originalC1.Value.Position
+				offset = VectorUtils.multiply(originalC1.Value.Position, scaleFactor) - originalC1.Value.Position
 				motor.C1 = CFrame.new(originalC1.Value.Position + offset)
 					* CFrame.fromEulerAnglesXYZ(originalC1.Value:ToEulerAnglesXYZ())
 
@@ -443,7 +474,7 @@ function PlayerController.scaleAccessory(character, part, accessory, scaleFactor
 					originalC1.Value = motor.C1
 				end
 
-				local offset = (originalC1.Value.Position * scaleFactor) - originalC1.Value.Position
+				local offset = VectorUtils.multiply(originalC1.Value.Position, scaleFactor) - originalC1.Value.Position
 				motor.C1 = CFrame.new(originalC1.Value.Position + offset)
 					* CFrame.fromEulerAnglesXYZ(originalC1.Value:ToEulerAnglesXYZ())
 
@@ -472,7 +503,7 @@ function PlayerController.scaleHipHeight(character, scaleFactor)
 	humanoid.HipHeight = originalHipHeight.Value * scaleFactor
 end
 
-function PlayerController.cloneCharacter(character)
+function PlayerController.cloneCharacter(player, character)
 	character.Archivable = true
 
 	local scalingTable = {}
@@ -486,12 +517,7 @@ function PlayerController.cloneCharacter(character)
 			return
 		end
 
-		local originalSizeValue = child:FindFirstChild("OriginalSize")
-		if not originalSizeValue then
-			return
-		end
-
-		local scalingFactor = (child.Size / originalSizeValue.Value).X
+		local scalingFactor = PlayerController.getScalingFactor(player, child)
 
 		scalingTable[child.Name] = scalingFactor
 	end)
@@ -518,28 +544,86 @@ function PlayerController.cloneCharacter(character)
 		PlayerController.scalePart(clone, child.Name, scalingTable[child.Name])
 	end)
 
+	local playerScaling = PlayerController.getPlayerScaling(player)
+
+	PlayerController.scaleHipHeight(
+		clone,
+		math.max(playerScaling.RightLegScale, playerScaling.LeftLegScale, playerScaling.BodyHeightScale)
+	)
+
 	return clone
 end
 
-function PlayerController.getScalingFactor(part)
+function PlayerController.getScalingFactor(player, part)
 	if not part:IsA("BasePart") then
-		return 1
+		return Vector3.one
 	end
 
 	if not table.find(PARTS_TO_SCALE, part.Name) then
-		return 1
+		return Vector3.one
 	end
 
-	local originalSizeValue = part:FindFirstChild("OriginalSize")
-	if not originalSizeValue then
-		return
+	-- local originalSizeValue = part:FindFirstChild("OriginalSize")
+	-- if not originalSizeValue then
+	-- 	return
+	-- end
+
+	-- local scalingFactor = (part.Size / originalSizeValue.Value).X
+	-- return scalingFactor
+
+	local playerScaling = PlayerController.getPlayerScaling(player)
+
+	local scalingValueName = PARTS_TO_SCALE_VALUES[part.Name]
+
+	if not scalingValueName then
+		return Vector3.one
 	end
 
-	local scalingFactor = (part.Size / originalSizeValue.Value).X
-	return scalingFactor
+	if not playerScaling[scalingValueName] then
+		return Vector3.one
+	end
+
+	if part.Name == "Head" then
+		return Vector3.new(
+			playerScaling[scalingValueName],
+			playerScaling[scalingValueName],
+			playerScaling[scalingValueName]
+		)
+	else
+		return Vector3.new(
+			math.max(playerScaling[scalingValueName], playerScaling.BodyWidthScale),
+			math.max(playerScaling[scalingValueName], playerScaling.BodyHeightScale),
+			math.max(playerScaling[scalingValueName], playerScaling.BodyDepthScale)
+		)
+	end
 end
 
-function PlayerController.swapBodyPart(character, newPart)
+function PlayerController.getPlayerScaling(player)
+	local scalingValues = {
+		HeadScale = 1,
+		TorsoScale = 1,
+		RightArmScale = 1,
+		LeftArmScale = 1,
+		LeftLegScale = 1,
+		RightLegScale = 1,
+		BodyHeightScale = 1,
+		BodyWidthScale = 1,
+		BodyDepthScale = 1,
+	}
+	local scaleValuesFolder = player:FindFirstChild("ScaleValues")
+
+	if not scaleValuesFolder then
+		return scalingValues
+	end
+
+	for _, scalingValue in ipairs(scaleValuesFolder:GetChildren()) do
+		scalingValues[scalingValue.Name] = scalingValue.Value
+	end
+
+	return scalingValues
+end
+
+function PlayerController.swapBodyPart(player, character, newPart)
 	if not character or not newPart then
 		return
 	end
@@ -552,7 +636,7 @@ function PlayerController.swapBodyPart(character, newPart)
 		return
 	end
 
-	local scalingFactor = PlayerController.getScalingFactor(oldPart)
+	local scalingFactor = PlayerController.getScalingFactor(player, oldPart)
 
 	local newPartClone = newPart:Clone()
 	newPartClone.Parent = character

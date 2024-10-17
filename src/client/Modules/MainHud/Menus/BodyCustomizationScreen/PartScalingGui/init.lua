@@ -49,6 +49,23 @@ function PartScalingGui:render()
 						SortOrder = Enum.SortOrder.LayoutOrder,
 						Padding = UDim.new(0.05),
 					}),
+					PartScalingInfo = createElement("TextLabel", {
+						Size = UDim2.fromScale(0.98, 0.15),
+						BackgroundTransparency = 1,
+						LayoutOrder = 0,
+						Text = "Part Scaling",
+						TextColor3 = Color3.new(1, 1, 1),
+						FontFace = theme.fonts.bold,
+						TextScaled = true,
+						TextXAlignment = Enum.TextXAlignment.Center,
+					}, {
+						UIPadding = createElement("UIPadding", {
+							PaddingBottom = UDim.new(0.1),
+							PaddingLeft = UDim.new(0.1),
+							PaddingRight = UDim.new(0.1),
+							PaddingTop = UDim.new(0.1),
+						}),
+					}),
 					HeadScaling = createElement("Frame", {
 						Size = UDim2.fromScale(0.98, 0.2),
 						BackgroundColor3 = Color3.new(1, 1, 1),
@@ -465,6 +482,233 @@ function PartScalingGui:render()
 								updateBinding = function(value)
 									local scale = self.props.scaleBind.scale:getValue()
 									scale.LeftLegScale = 1 + value
+
+									self.props.scaleBind.update(scale)
+								end,
+								bind = {
+									value = self.props.scaleBind.scale,
+									update = self.props.scaleBind.update,
+								},
+							}),
+						}),
+					}),
+					HumanoidScalingInfo = createElement("TextLabel", {
+						Size = UDim2.fromScale(0.98, 0.15),
+						BackgroundTransparency = 1,
+						LayoutOrder = 6,
+						Text = "Humanoid Scaling",
+						TextColor3 = Color3.new(1, 1, 1),
+						FontFace = theme.fonts.bold,
+						TextScaled = true,
+						TextXAlignment = Enum.TextXAlignment.Center,
+					}, {
+						UIPadding = createElement("UIPadding", {
+							PaddingBottom = UDim.new(0.1),
+							PaddingLeft = UDim.new(0.1),
+							PaddingRight = UDim.new(0.1),
+							PaddingTop = UDim.new(0.1),
+						}),
+					}),
+					BodyHeightScale = createElement("Frame", {
+						Size = UDim2.fromScale(1, 0.2),
+						BackgroundColor3 = Color3.new(1, 1, 1),
+						LayoutOrder = 7,
+					}, {
+						UIPadding = createElement("UIPadding", {
+							PaddingBottom = UDim.new(0.05),
+							PaddingLeft = UDim.new(0.1),
+							PaddingRight = UDim.new(0.1),
+							PaddingTop = UDim.new(0.05),
+						}),
+						UICorner = createElement("UICorner", {
+							CornerRadius = UDim.new(0.2),
+						}),
+						UIListLayout = createElement("UIListLayout", {
+							FillDirection = Enum.FillDirection.Horizontal,
+							HorizontalAlignment = Enum.HorizontalAlignment.Center,
+							VerticalAlignment = Enum.VerticalAlignment.Center,
+							Padding = UDim.new(0.1),
+							SortOrder = Enum.SortOrder.LayoutOrder,
+						}),
+						Info = createElement("TextLabel", {
+							Size = UDim2.fromScale(0.3, 1),
+							BackgroundTransparency = 1,
+							LayoutOrder = 1,
+							Text = "Height",
+							FontFace = theme.fonts.bold,
+							TextScaled = true,
+							TextColor3 = Color3.new(0, 0, 0),
+						}),
+						SliderBg = createElement("Frame", {
+							Size = UDim2.fromScale(0.6, 1),
+							BackgroundTransparency = 1,
+							LayoutOrder = 2,
+						}, {
+							Slider = createElement(Slider, {
+								trackColor = Color3.new(0, 0, 0),
+								knobColor = Color3.new(0.713725, 0.713725, 0.713725),
+								infoColor = Color3.new(0, 0, 0),
+								maxValue = 3,
+								minValue = 0.5,
+								getKnobPos = function(value)
+									if not value.BodyHeightScale then
+										return UDim2.fromScale(0.5, 0.5)
+									end
+
+									local prec = value.BodyHeightScale - 1
+
+									return UDim2.fromScale(prec, 0.5)
+								end,
+								getInfo = function(value)
+									if not value.BodyHeightScale then
+										return "1"
+									end
+
+									return string.format("%.1f", value.BodyHeightScale)
+								end,
+								updateBinding = function(value)
+									local scale = self.props.scaleBind.scale:getValue()
+									scale.BodyHeightScale = 1 + value
+
+									self.props.scaleBind.update(scale)
+								end,
+								bind = {
+									value = self.props.scaleBind.scale,
+									update = self.props.scaleBind.update,
+								},
+							}),
+						}),
+					}),
+					BodyWidthScale = createElement("Frame", {
+						Size = UDim2.fromScale(1, 0.2),
+						BackgroundColor3 = Color3.new(1, 1, 1),
+						LayoutOrder = 8,
+					}, {
+						UIPadding = createElement("UIPadding", {
+							PaddingBottom = UDim.new(0.05),
+							PaddingLeft = UDim.new(0.1),
+							PaddingRight = UDim.new(0.1),
+							PaddingTop = UDim.new(0.05),
+						}),
+						UICorner = createElement("UICorner", {
+							CornerRadius = UDim.new(0.2),
+						}),
+						UIListLayout = createElement("UIListLayout", {
+							FillDirection = Enum.FillDirection.Horizontal,
+							HorizontalAlignment = Enum.HorizontalAlignment.Center,
+							VerticalAlignment = Enum.VerticalAlignment.Center,
+							Padding = UDim.new(0.1),
+							SortOrder = Enum.SortOrder.LayoutOrder,
+						}),
+						Info = createElement("TextLabel", {
+							Size = UDim2.fromScale(0.3, 1),
+							BackgroundTransparency = 1,
+							LayoutOrder = 1,
+							Text = "Width",
+							FontFace = theme.fonts.bold,
+							TextScaled = true,
+							TextColor3 = Color3.new(0, 0, 0),
+						}),
+						SliderBg = createElement("Frame", {
+							Size = UDim2.fromScale(0.6, 1),
+							BackgroundTransparency = 1,
+							LayoutOrder = 2,
+						}, {
+							Slider = createElement(Slider, {
+								trackColor = Color3.new(0, 0, 0),
+								knobColor = Color3.new(0.713725, 0.713725, 0.713725),
+								infoColor = Color3.new(0, 0, 0),
+								maxValue = 3,
+								minValue = 0.5,
+								getKnobPos = function(value)
+									if not value.BodyWidthScale then
+										return UDim2.fromScale(0.5, 0.5)
+									end
+
+									local prec = value.BodyWidthScale - 1
+
+									return UDim2.fromScale(prec, 0.5)
+								end,
+								getInfo = function(value)
+									if not value.BodyWidthScale then
+										return "1"
+									end
+
+									return string.format("%.1f", value.BodyWidthScale)
+								end,
+								updateBinding = function(value)
+									local scale = self.props.scaleBind.scale:getValue()
+									scale.BodyWidthScale = 1 + value
+
+									self.props.scaleBind.update(scale)
+								end,
+								bind = {
+									value = self.props.scaleBind.scale,
+									update = self.props.scaleBind.update,
+								},
+							}),
+						}),
+					}),
+					BodyDepthScale = createElement("Frame", {
+						Size = UDim2.fromScale(1, 0.2),
+						BackgroundColor3 = Color3.new(1, 1, 1),
+						LayoutOrder = 9,
+					}, {
+						UIPadding = createElement("UIPadding", {
+							PaddingBottom = UDim.new(0.05),
+							PaddingLeft = UDim.new(0.1),
+							PaddingRight = UDim.new(0.1),
+							PaddingTop = UDim.new(0.05),
+						}),
+						UICorner = createElement("UICorner", {
+							CornerRadius = UDim.new(0.2),
+						}),
+						UIListLayout = createElement("UIListLayout", {
+							FillDirection = Enum.FillDirection.Horizontal,
+							HorizontalAlignment = Enum.HorizontalAlignment.Center,
+							VerticalAlignment = Enum.VerticalAlignment.Center,
+							Padding = UDim.new(0.1),
+							SortOrder = Enum.SortOrder.LayoutOrder,
+						}),
+						Info = createElement("TextLabel", {
+							Size = UDim2.fromScale(0.3, 1),
+							BackgroundTransparency = 1,
+							LayoutOrder = 1,
+							Text = "Depth",
+							FontFace = theme.fonts.bold,
+							TextScaled = true,
+							TextColor3 = Color3.new(0, 0, 0),
+						}),
+						SliderBg = createElement("Frame", {
+							Size = UDim2.fromScale(0.6, 1),
+							BackgroundTransparency = 1,
+							LayoutOrder = 2,
+						}, {
+							Slider = createElement(Slider, {
+								trackColor = Color3.new(0, 0, 0),
+								knobColor = Color3.new(0.713725, 0.713725, 0.713725),
+								infoColor = Color3.new(0, 0, 0),
+								maxValue = 3,
+								minValue = 0.5,
+								getKnobPos = function(value)
+									if not value.BodyDepthScale then
+										return UDim2.fromScale(0.5, 0.5)
+									end
+
+									local prec = value.BodyDepthScale - 1
+
+									return UDim2.fromScale(prec, 0.5)
+								end,
+								getInfo = function(value)
+									if not value.BodyDepthScale then
+										return "1"
+									end
+
+									return string.format("%.1f", value.BodyDepthScale)
+								end,
+								updateBinding = function(value)
+									local scale = self.props.scaleBind.scale:getValue()
+									scale.BodyDepthScale = 1 + value
 
 									self.props.scaleBind.update(scale)
 								end,

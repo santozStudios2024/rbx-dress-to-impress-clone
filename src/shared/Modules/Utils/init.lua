@@ -4,6 +4,7 @@ local Utils = {
 	StringUtils = require(script.StringUtils),
 	Timer = require(script.Timer),
 	CollisionGroupUtils = require(script.CollisionGroupUtils),
+	VectorUtils = require(script.VectorUtils),
 }
 
 return Utils

@@ -52,6 +52,31 @@ local function OnPlayerAdded(player: Player)
 	playerJanitor:Add(characterRemovedConnection, "Disconnect")
 
 	playerJanitors[player] = playerJanitor
+
+	-- Add Player Scaling --
+	local scaleValuesFolder = Instance.new("Folder")
+	scaleValuesFolder.Parent = player
+	scaleValuesFolder.Name = "ScaleValues"
+
+	local scalingValues = {
+		"HeadScale",
+		"TorsoScale",
+		"RightArmScale",
+		"LeftArmScale",
+		"LeftLegScale",
+		"RightLegScale",
+		"BodyHeightScale",
+		"BodyWidthScale",
+		"BodyDepthScale",
+	}
+
+	for _, valueName in ipairs(scalingValues) do
+		local scalingValue = Instance.new("NumberValue")
+		scalingValue.Name = valueName
+		scalingValue.Parent = scaleValuesFolder
+
+		scalingValue.Value = 1
+	end
 end
 
 local function OnPlayerRemoved(player)
