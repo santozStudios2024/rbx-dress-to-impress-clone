@@ -621,9 +621,15 @@ function PlayerController.getScalingFactor(player, part)
 		)
 	else
 		return Vector3.new(
-			math.max(playerScaling[scalingValueName], playerScaling.BodyWidthScale),
-			math.max(playerScaling[scalingValueName], playerScaling.BodyHeightScale),
-			math.max(playerScaling[scalingValueName], playerScaling.BodyDepthScale)
+			playerScaling.BodyWidthScale >= 1
+					and math.max(playerScaling[scalingValueName], playerScaling.BodyWidthScale)
+				or math.min(playerScaling[scalingValueName], playerScaling.BodyWidthScale),
+			playerScaling.BodyHeightScale >= 1
+					and math.max(playerScaling[scalingValueName], playerScaling.BodyHeightScale)
+				or math.min(playerScaling[scalingValueName], playerScaling.BodyHeightScale),
+			playerScaling.BodyDepthScale >= 1
+					and math.max(playerScaling[scalingValueName], playerScaling.BodyDepthScale)
+				or math.min(playerScaling[scalingValueName], playerScaling.BodyDepthScale)
 		)
 	end
 end
@@ -771,9 +777,12 @@ function PlayerController.scalePlayer(player, character, bodyScale)
 				character,
 				partName,
 				Vector3.new(
-					math.max(scale, bodyScale.BodyWidthScale),
-					math.max(scale, bodyScale.BodyHeightScale),
-					math.max(scale, bodyScale.BodyDepthScale)
+					bodyScale.BodyWidthScale >= 1 and math.max(scale, bodyScale.BodyWidthScale)
+						or math.min(scale, bodyScale.BodyWidthScale),
+					bodyScale.BodyHeightScale >= 1 and math.max(scale, bodyScale.BodyHeightScale)
+						or math.min(scale, bodyScale.BodyHeightScale),
+					bodyScale.BodyDepthScale >= 1 and math.max(scale, bodyScale.BodyDepthScale)
+						or math.min(scale, bodyScale.BodyDepthScale)
 				)
 			)
 		end
