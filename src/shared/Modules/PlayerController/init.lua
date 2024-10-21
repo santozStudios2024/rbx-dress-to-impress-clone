@@ -50,6 +50,36 @@ local PARTS_TO_SCALE_VALUES = {
 	LeftFoot = "LeftLegScale",
 }
 
+local SCALE_VALUES_TOPART = {
+	HeadScale = {
+		"Head",
+	},
+	TorsoScale = {
+		"UpperTorso",
+		"LowerTorso",
+	},
+	RightArmScale = {
+		"RightUpperArm",
+		"RightLowerArm",
+		"RightHand",
+	},
+	LeftArmScale = {
+		"LeftUpperArm",
+		"LeftLowerArm",
+		"LeftHand",
+	},
+	LeftLegScale = {
+		"LeftUpperLeg",
+		"LeftLowerLeg",
+		"LeftFoot",
+	},
+	RightLegScale = {
+		"RightUpperLeg",
+		"RightLowerLeg",
+		"RightFoot",
+	},
+}
+
 local PlayerController = {}
 
 function PlayerController.toggleControls(enable)
@@ -119,19 +149,15 @@ function PlayerController.resetDescription(player)
 
 	description.Face = 0
 	description.FaceAccessory = ""
+	description.BackAccessory = ""
+	description.FrontAccessory = ""
+	description.HairAccessory = ""
+	description.HatAccessory = ""
+	description.NeckAccessory = ""
+	description.ShouldersAccessory = ""
+	description.WaistAccessory = ""
 
 	humanoid:ApplyDescription(description)
-
-	TableUtils:apply(character:GetDescendants(), function(part)
-		if part:IsA("Accessory") then
-			part:Destroy()
-			return
-		end
-
-		-- local scalingFactor = PlayerController.getScalingFactor(player, part)
-
-		PlayerController.scalePart(character, part.Name, Vector3.one)
-	end)
 
 	local scaleValuesFolder = player:FindFirstChild("ScaleValues")
 	if scaleValuesFolder then
@@ -143,6 +169,8 @@ function PlayerController.resetDescription(player)
 			child.Value = 1
 		end
 	end
+
+	PlayerController.scalePlayer(player, character)
 
 	Promise.new(function(_, reject)
 		local head = character:FindFirstChild("Head")
@@ -506,21 +534,21 @@ end
 function PlayerController.cloneCharacter(player, character)
 	character.Archivable = true
 
-	local scalingTable = {}
+	-- local scalingTable = {}
 
-	TableUtils:apply(character:GetDescendants(), function(child)
-		if not child:IsA("BasePart") then
-			return
-		end
+	-- TableUtils:apply(character:GetDescendants(), function(child)
+	-- 	if not child:IsA("BasePart") then
+	-- 		return
+	-- 	end
 
-		if not table.find(PARTS_TO_SCALE, child.Name) then
-			return
-		end
+	-- 	if not table.find(PARTS_TO_SCALE, child.Name) then
+	-- 		return
+	-- 	end
 
-		local scalingFactor = PlayerController.getScalingFactor(player, child)
+	-- 	local scalingFactor = PlayerController.getScalingFactor(player, child)
 
-		scalingTable[child.Name] = scalingFactor
-	end)
+	-- 	scalingTable[child.Name] = scalingFactor
+	-- end)
 
 	local clone = character:Clone()
 	clone:PivotTo(CFrame.new(1000, 10000, 1000))
@@ -528,28 +556,30 @@ function PlayerController.cloneCharacter(player, character)
 
 	task.wait()
 
-	TableUtils:apply(clone:GetDescendants(), function(child)
-		if not child:IsA("BasePart") then
-			return
-		end
+	-- TableUtils:apply(clone:GetDescendants(), function(child)
+	-- 	if not child:IsA("BasePart") then
+	-- 		return
+	-- 	end
 
-		if not table.find(PARTS_TO_SCALE, child.Name) then
-			return
-		end
+	-- 	if not table.find(PARTS_TO_SCALE, child.Name) then
+	-- 		return
+	-- 	end
 
-		if not scalingTable[child.Name] then
-			return
-		end
+	-- 	if not scalingTable[child.Name] then
+	-- 		return
+	-- 	end
 
-		PlayerController.scalePart(clone, child.Name, scalingTable[child.Name])
-	end)
+	-- 	PlayerController.scalePart(clone, child.Name, scalingTable[child.Name])
+	-- end)
 
-	local playerScaling = PlayerController.getPlayerScaling(player)
+	-- local playerScaling = PlayerController.getPlayerScaling(player)
 
-	PlayerController.scaleHipHeight(
-		clone,
-		math.max(playerScaling.RightLegScale, playerScaling.LeftLegScale, playerScaling.BodyHeightScale)
-	)
+	-- PlayerController.scaleHipHeight(
+	-- 	clone,
+	-- 	math.max(playerScaling.RightLegScale, playerScaling.LeftLegScale, playerScaling.BodyHeightScale)
+	-- )
+
+	PlayerController.scalePlayer(player, clone)
 
 	return clone
 end
@@ -697,6 +727,62 @@ function PlayerController.swapBodyPart(player, character, newPart)
 	oldPart:Destroy()
 
 	PlayerController.scalePart(character, newPartClone.Name, scalingFactor)
+end
+
+function PlayerController.saveBodyScale(player, bodyScale)
+	local scaleValuesFolder = player:FindFirstChild("ScaleValues")
+	if not scaleValuesFolder then
+		return
+	end
+
+	for partToScale, scale in pairs(bodyScale) do
+		local scalingValue = scaleValuesFolder:FindFirstChild(partToScale)
+
+		if not scalingValue then
+			continue
+		end
+
+		scalingValue.Value = scale
+	end
+end
+
+function PlayerController.scalePlayer(player, character, bodyScale)
+	local scaleValuesFolder = player:FindFirstChild("ScaleValues")
+	if not scaleValuesFolder then
+		return
+	end
+
+	if not bodyScale then
+		bodyScale = PlayerController.getPlayerScaling(player)
+	end
+
+	for partToScale, scale in pairs(bodyScale) do
+		if not SCALE_VALUES_TOPART[partToScale] then
+			continue
+		end
+
+		for _, partName in ipairs(SCALE_VALUES_TOPART[partToScale]) do
+			if partName == "Head" then
+				PlayerController.scalePart(character, partName, Vector3.one * scale)
+				continue
+			end
+
+			PlayerController.scalePart(
+				character,
+				partName,
+				Vector3.new(
+					math.max(scale, bodyScale.BodyWidthScale),
+					math.max(scale, bodyScale.BodyHeightScale),
+					math.max(scale, bodyScale.BodyDepthScale)
+				)
+			)
+		end
+	end
+
+	PlayerController.scaleHipHeight(
+		character,
+		math.max(bodyScale.RightLegScale, bodyScale.LeftLegScale, bodyScale.BodyHeightScale)
+	)
 end
 
 return PlayerController
