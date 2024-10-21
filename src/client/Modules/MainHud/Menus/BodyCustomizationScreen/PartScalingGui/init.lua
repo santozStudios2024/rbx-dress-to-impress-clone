@@ -113,7 +113,7 @@ function PartScalingGui:render()
 										return UDim2.fromScale(0.5, 0.5)
 									end
 
-									local prec = value.HeadScale - 1
+									local prec = (value.HeadScale - 0.5) / 1.5
 
 									return UDim2.fromScale(prec, 0.5)
 								end,
@@ -126,7 +126,7 @@ function PartScalingGui:render()
 								end,
 								updateBinding = function(value)
 									local scale = self.props.scaleBind.scale:getValue()
-									scale.HeadScale = 1 + value
+									scale.HeadScale = 0.5 + value * 1.5
 
 									self.props.scaleBind.update(scale)
 								end,
@@ -184,7 +184,7 @@ function PartScalingGui:render()
 										return UDim2.fromScale(0.5, 0.5)
 									end
 
-									local prec = value.TorsoScale - 1
+									local prec = (value.TorsoScale - 0.5) / 1.5
 
 									return UDim2.fromScale(prec, 0.5)
 								end,
@@ -197,7 +197,7 @@ function PartScalingGui:render()
 								end,
 								updateBinding = function(value)
 									local scale = self.props.scaleBind.scale:getValue()
-									scale.TorsoScale = 1 + value
+									scale.TorsoScale = 0.5 + value * 1.5
 
 									self.props.scaleBind.update(scale)
 								end,
@@ -255,7 +255,7 @@ function PartScalingGui:render()
 										return UDim2.fromScale(0.5, 0.5)
 									end
 
-									local prec = value.RightArmScale - 1
+									local prec = (value.RightArmScale - 0.5) / 1.5
 
 									return UDim2.fromScale(prec, 0.5)
 								end,
@@ -268,7 +268,7 @@ function PartScalingGui:render()
 								end,
 								updateBinding = function(value)
 									local scale = self.props.scaleBind.scale:getValue()
-									scale.RightArmScale = 1 + value
+									scale.RightArmScale = 0.5 + value * 1.5
 
 									self.props.scaleBind.update(scale)
 								end,
@@ -326,7 +326,7 @@ function PartScalingGui:render()
 										return UDim2.fromScale(0.5, 0.5)
 									end
 
-									local prec = value.LeftArmScale - 1
+									local prec = (value.LeftArmScale - 0.5) / 1.5
 
 									return UDim2.fromScale(prec, 0.5)
 								end,
@@ -339,7 +339,7 @@ function PartScalingGui:render()
 								end,
 								updateBinding = function(value)
 									local scale = self.props.scaleBind.scale:getValue()
-									scale.LeftArmScale = 1 + value
+									scale.LeftArmScale = 0.5 + value * 1.5
 
 									self.props.scaleBind.update(scale)
 								end,
@@ -397,7 +397,7 @@ function PartScalingGui:render()
 										return UDim2.fromScale(0.5, 0.5)
 									end
 
-									local prec = value.RightLegScale - 1
+									local prec = (value.RightLegScale - 0.5) / 1.5
 
 									return UDim2.fromScale(prec, 0.5)
 								end,
@@ -410,7 +410,7 @@ function PartScalingGui:render()
 								end,
 								updateBinding = function(value)
 									local scale = self.props.scaleBind.scale:getValue()
-									scale.RightLegScale = 1 + value
+									scale.RightLegScale = 0.5 + value * 1.5
 
 									self.props.scaleBind.update(scale)
 								end,
@@ -468,7 +468,7 @@ function PartScalingGui:render()
 										return UDim2.fromScale(0.5, 0.5)
 									end
 
-									local prec = value.LeftLegScale - 1
+									local prec = (value.LeftLegScale - 0.5) / 1.5
 
 									return UDim2.fromScale(prec, 0.5)
 								end,
@@ -481,7 +481,7 @@ function PartScalingGui:render()
 								end,
 								updateBinding = function(value)
 									local scale = self.props.scaleBind.scale:getValue()
-									scale.LeftLegScale = 1 + value
+									scale.LeftLegScale = 0.5 + value * 1.5
 
 									self.props.scaleBind.update(scale)
 								end,
@@ -555,7 +555,7 @@ function PartScalingGui:render()
 										return UDim2.fromScale(0.5, 0.5)
 									end
 
-									local prec = value.BodyHeightScale - 1
+									local prec = (value.BodyHeightScale - 0.5) / 1.5
 
 									return UDim2.fromScale(prec, 0.5)
 								end,
@@ -568,7 +568,7 @@ function PartScalingGui:render()
 								end,
 								updateBinding = function(value)
 									local scale = self.props.scaleBind.scale:getValue()
-									scale.BodyHeightScale = 1 + value
+									scale.BodyHeightScale = 0.5 + value * 1.5
 
 									self.props.scaleBind.update(scale)
 								end,
@@ -625,7 +625,7 @@ function PartScalingGui:render()
 										return UDim2.fromScale(0.5, 0.5)
 									end
 
-									local prec = value.BodyWidthScale - 1
+									local prec = (value.BodyWidthScale - 0.5) / 1.5
 
 									return UDim2.fromScale(prec, 0.5)
 								end,
@@ -638,7 +638,7 @@ function PartScalingGui:render()
 								end,
 								updateBinding = function(value)
 									local scale = self.props.scaleBind.scale:getValue()
-									scale.BodyWidthScale = 1 + value
+									scale.BodyWidthScale = 0.5 + value * 1.5
 
 									self.props.scaleBind.update(scale)
 								end,
@@ -695,7 +695,7 @@ function PartScalingGui:render()
 										return UDim2.fromScale(0.5, 0.5)
 									end
 
-									local prec = value.BodyDepthScale - 1
+									local prec = (value.BodyDepthScale - 0.5) / 1.5
 
 									return UDim2.fromScale(prec, 0.5)
 								end,
@@ -708,7 +708,7 @@ function PartScalingGui:render()
 								end,
 								updateBinding = function(value)
 									local scale = self.props.scaleBind.scale:getValue()
-									scale.BodyDepthScale = 1 + value
+									scale.BodyDepthScale = 0.5 + value * 1.5
 
 									self.props.scaleBind.update(scale)
 								end,

@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 -- Dependencies --
 local Janitor = require(game.ReplicatedStorage.Packages.Janitor)
 local Constants = require(game.ReplicatedStorage.Shared.Modules.Constants)
+local PlayerController = require(game.ReplicatedStorage.Shared.Modules.PlayerController)
 local Utils = require(game.ReplicatedStorage.Shared.Modules.Utils)
 local CollisionGroupUtils = Utils.CollisionGroupUtils
 
@@ -20,8 +21,14 @@ local function OnCharacterAdded(player, character: Model)
 
 	CollisionGroupUtils.setCollisionGroup(character, Constants.CG_IDS.PLAYER)
 
-	local partAddedConnection = character.DescendantAdded:Connect(function(descendant)
-		CollisionGroupUtils.setCollisionGroup(descendant, Constants.CG_IDS.PLAYER)
+	local partAddedConnection = character.ChildAdded:Connect(function(child)
+		CollisionGroupUtils.setCollisionGroup(child, Constants.CG_IDS.PLAYER)
+
+		if not child:IsA("Accessory") then
+			return
+		end
+
+		PlayerController.initializeAccessory(player, character, child)
 	end)
 
 	characterJanitor:Add(partAddedConnection)

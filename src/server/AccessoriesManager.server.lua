@@ -15,37 +15,6 @@ local bodyPartAddedSignal = CollectionService:GetInstanceAddedSignal(Constants.T
 local assets = game.ReplicatedStorage.Shared.Assets
 local defaultCharacter = assets.DefaultCharacter
 
--- Constants --
-local PARTS_TO_SCALE = {
-	HeadScale = {
-		"Head",
-	},
-	TorsoScale = {
-		"UpperTorso",
-		"LowerTorso",
-	},
-	RightArmScale = {
-		"RightUpperArm",
-		"RightLowerArm",
-		"RightHand",
-	},
-	LeftArmScale = {
-		"LeftUpperArm",
-		"LeftLowerArm",
-		"LeftHand",
-	},
-	LeftLegScale = {
-		"LeftUpperLeg",
-		"LeftLowerLeg",
-		"LeftFoot",
-	},
-	RightLegScale = {
-		"RightUpperLeg",
-		"RightLowerLeg",
-		"RightFoot",
-	},
-}
-
 local function OnBodyPartAdded(bodyPart)
 	for _, part in ipairs(bodyPart:GetChildren()) do
 		if not part:IsA("BasePart") then
@@ -169,42 +138,11 @@ local function SaveBodyCustomizations(player, data)
 
 	humanoid:ApplyDescription(description)
 
-	for partToScale, scale in pairs(bodyScale) do
-		local scaleValuesFolder = player:FindFirstChild("ScaleValues")
-		if scaleValuesFolder then
-			local scalingValue = scaleValuesFolder:FindFirstChild(partToScale)
+	PlayerController.saveBodyScale(player, bodyScale)
 
-			if scalingValue then
-				scalingValue.Value = scale
-			end
-		end
+	task.wait()
 
-		if not PARTS_TO_SCALE[partToScale] then
-			continue
-		end
-
-		for _, partName in ipairs(PARTS_TO_SCALE[partToScale]) do
-			if partName == "Head" then
-				PlayerController.scalePart(character, partName, Vector3.one * scale)
-				continue
-			end
-
-			PlayerController.scalePart(
-				character,
-				partName,
-				Vector3.new(
-					math.max(scale, bodyScale.BodyWidthScale),
-					math.max(scale, bodyScale.BodyHeightScale),
-					math.max(scale, bodyScale.BodyDepthScale)
-				)
-			)
-		end
-	end
-
-	PlayerController.scaleHipHeight(
-		character,
-		math.max(bodyScale.RightLegScale, bodyScale.LeftLegScale, bodyScale.BodyHeightScale)
-	)
+	PlayerController.scalePlayer(player, character)
 
 	Promise.new(function(_, reject)
 		local head = character:FindFirstChild("Head")

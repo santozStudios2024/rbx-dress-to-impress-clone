@@ -27,38 +27,6 @@ local ImageAssets = require(assets.ImageAssets)
 local animate = assets.Animate
 
 -- Constants --
-local PARTS_TO_SCALE = {
-	HeadScale = {
-		"Head",
-	},
-	TorsoScale = {
-		"UpperTorso",
-		"LowerTorso",
-	},
-	RightArmScale = {
-		"RightUpperArm",
-		"RightLowerArm",
-		"RightHand",
-	},
-	LeftArmScale = {
-		"LeftUpperArm",
-		"LeftLowerArm",
-		"LeftHand",
-	},
-	LeftLegScale = {
-		"LeftUpperLeg",
-		"LeftLowerLeg",
-		"LeftFoot",
-	},
-	RightLegScale = {
-		"RightUpperLeg",
-		"RightLowerLeg",
-		"RightFoot",
-	},
-	EXTRA = {
-		"HumanoidRootPart",
-	},
-}
 local AutomaticRotationSpeed = 30
 local ManualRotationSpeed = 180
 
@@ -96,33 +64,7 @@ function AvatarVpComponent:updateScaling(scaling)
 		humanoid:ApplyDescription(description)
 	end
 
-	for partToScale, scale in pairs(scaling) do
-		if not PARTS_TO_SCALE[partToScale] then
-			continue
-		end
-
-		for _, partName in ipairs(PARTS_TO_SCALE[partToScale]) do
-			if partName == "Head" then
-				PlayerController.scalePart(self.dummyModel, partName, Vector3.one * scale)
-				continue
-			end
-
-			PlayerController.scalePart(
-				self.dummyModel,
-				partName,
-				Vector3.new(
-					math.max(scale, scaling.BodyWidthScale),
-					math.max(scale, scaling.BodyHeightScale),
-					math.max(scale, scaling.BodyDepthScale)
-				)
-			)
-		end
-	end
-
-	PlayerController.scaleHipHeight(
-		self.dummyModel,
-		math.max(scaling.RightLegScale, scaling.LeftLegScale, scaling.BodyHeightScale)
-	)
+	PlayerController.scalePlayer(localPlayer, self.dummyModel, scaling)
 
 	return Promise.new(function()
 		self.vpfModel = VpModelModule.new(self.vpRef:getValue(), self.camera)
